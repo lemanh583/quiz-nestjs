@@ -1,0 +1,14 @@
+FROM node:18.18.2
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+#Solve the problem reinstaling bcrypt
+RUN npm uninstall argon2
+RUN npm i argon2
+
+COPY . .
+EXPOSE 3000
+CMD [ "npm", "run", "start:dev" ]
