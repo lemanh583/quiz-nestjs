@@ -18,6 +18,12 @@ export class ExamHistory extends BaseEntity {
     @Column()
     end_time: Date
 
+    @Column({ name: 'user_id' })
+    user_id: string
+    
+    @Column({ name: 'exam_id' })
+    exam_id: string
+
     @ManyToOne(() => User, e => e.exam_histories)
     @JoinColumn({ name: 'user_id' })
     user: User;

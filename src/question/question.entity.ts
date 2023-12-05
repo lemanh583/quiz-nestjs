@@ -3,23 +3,23 @@ import { BaseEntity } from 'src/common/base/base.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { Answer } from 'src/answer/answer.entity';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
+import { ExamQuestion } from 'src/exam-question/exam-question.entity';
+import { QuestionType } from 'src/common/enum/question.enum';
 
 @Entity({ name: "questions" })
 export class Question extends BaseEntity {
     @Column()
     title: string
 
-    @Column()
-    type: string
+    @Column({ type: "enum", enum: QuestionType, default: QuestionType.single })
+    type: QuestionType
 
-    @ManyToOne(() => Exam, e => e.questions)
-    @JoinColumn({ name: 'exam_id' })
-    exam: Exam;
+    @OneToMany(() => ExamQuestion, (e) => e.question)
+    exam_questions: ExamQuestion[]
 
     @OneToMany(() => Answer, (e) => e.question)
     answers: Answer[]
 
     @OneToMany(() => HistoryAnswer, (e) => e.question)
     history_answers: HistoryAnswer[]
-    
 }

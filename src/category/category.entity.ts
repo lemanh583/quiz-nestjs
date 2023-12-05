@@ -17,7 +17,7 @@ export class Category extends BaseEntity {
     slug: Slug
 
     @Column({ name: "slug_id" })
-    slug_id: string
+    slug_id: number
 
     @OneToMany(() => Exam, (e) => e.category)
     exams: Exam[]

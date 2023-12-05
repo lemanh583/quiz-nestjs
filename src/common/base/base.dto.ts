@@ -1,4 +1,4 @@
-import { Expose } from "class-transformer"
+import { Expose, plainToClass } from "class-transformer"
 
 export abstract class BaseDto {
     @Expose()
@@ -11,5 +11,9 @@ export abstract class BaseDto {
     deleted_at: Date | null
 
     @Expose()
-    id: string
+    id: number
+
+    static plainToClass<T>(this: new (...args: any[]) => T, plain: T) {
+        return plainToClass(this, plain, { excludeExtraneousValues: true, enableImplicitConversion: true})
+    }
 }

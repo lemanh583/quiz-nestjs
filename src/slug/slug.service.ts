@@ -16,10 +16,9 @@ export class SlugService {
         return this.slugRepository.findOne(condition)
     }
 
-    async updateOne(condition: FindOptionsWhere<Slug>, data: Slug): Promise <Slug> {
-        let user = await this.slugRepository.findOneBy(condition)
-        let updateData = Object.assign(user, data) 
-        return this.slugRepository.save(updateData);
+    async updateOne(condition: FindOptionsWhere<Slug>, data: Partial<Slug>): Promise <Slug> {
+        await this.slugRepository.update(condition, data)
+        return this.slugRepository.findOne({ where: condition });
     }
 
     async save(data: CreateSlugDto): Promise<Slug> {

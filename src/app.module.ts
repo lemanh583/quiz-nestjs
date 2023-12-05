@@ -43,6 +43,8 @@ import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadMiddleware } from './middleware/upload.middleware';
+import { ExamQuestionModule } from './exam-question/exam-question.module';
+import { ExamQuestion } from './exam-question/exam-question.entity';
 
 @Module({
   imports: [
@@ -66,9 +68,11 @@ import { UploadMiddleware } from './middleware/upload.middleware';
         Post,
         ExamHistory,
         HistoryAnswer,
-        Media
+        Media,
+        ExamQuestion
       ],
       synchronize: true,
+      // logging: true
     }),
     UserModule,
     AuthModule,
@@ -82,12 +86,10 @@ import { UploadMiddleware } from './middleware/upload.middleware';
     MediaModule,
     HistoryAnswerModule,
     AdminModule,
+    ExamQuestionModule,
     // MulterModule.registerAsync({
     //   useClass: UploadMiddleware,
     // })
   ],
-  // controllers: [SlugController, QuestionController, AnswerController, HistoryController, ExamController, PostController, MediaController, HistoryAnswerController],
-  // providers: [],
-  // controllers: [UserController, AuthController],
 })
 export class AppModule { }

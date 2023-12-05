@@ -12,6 +12,15 @@ export class HistoryAnswer extends BaseEntity {
 
     @Column({ default: false })
     correct: boolean
+    
+    // array string id
+    @Column()
+    answer_ids: string
+
+    // array string id
+    // logs order question shuffle
+    @Column()
+    order_questions: string
 
     @ManyToOne(() => Question, e => e.history_answers)
     @JoinColumn({ name: 'question_id' })
@@ -24,8 +33,4 @@ export class HistoryAnswer extends BaseEntity {
     @ManyToOne(() => ExamHistory, e => e.history_answers)
     @JoinColumn({ name: 'exam_history_id' })
     exam_history: ExamHistory;
-
-    @ManyToOne(() => Answer, e => e.history_answers)
-    @JoinColumn({ name: 'answer_id' })
-    answer: Answer;
 }

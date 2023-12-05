@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, Post, Request, Body, HttpStatus, HttpException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guards';
-import { Role } from 'src/auth/decorator/role.decorator';
+import { Roles } from 'src/auth/decorator/role.decorator';
 import { UserRole } from 'src/common/enum/user.enum';
 import { RolesGuard } from 'src/auth/guards/role.guards';
 import { CurrentUser } from 'src/auth/decorator/user.decorator';

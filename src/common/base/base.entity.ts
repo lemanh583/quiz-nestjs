@@ -10,6 +10,6 @@ export abstract class BaseEntity {
     @Column({ default: null})
     deleted_at: Date
 
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 }

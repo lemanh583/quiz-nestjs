@@ -13,7 +13,7 @@ import { PassportModule } from '@nestjs/passport';
     {
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: "",
+        secret: process.env.SECRET_KEY_TOKEN,
       }),
       inject: [ConfigService],
     }),

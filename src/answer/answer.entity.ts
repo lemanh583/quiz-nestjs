@@ -17,7 +17,4 @@ export class Answer extends BaseEntity {
 
     @Column({ name: 'question_id' })
     question_id: string
-
-    @OneToMany(() => HistoryAnswer, (e) => e.answer)
-    history_answers: HistoryAnswer[]
 }

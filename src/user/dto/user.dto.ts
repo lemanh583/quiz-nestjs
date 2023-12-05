@@ -12,8 +12,4 @@ export class UserDto extends BaseDto {
     name: string
 
     password: string
-
-    static plainToClass<T>(this: new (...args: any[]) => T, plain: T) {
-        return plainToClass(this, plain, { excludeExtraneousValues: true})
-    }
 }

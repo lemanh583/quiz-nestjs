@@ -21,7 +21,7 @@ export class UserService {
         return this.userRepository.save(updateData);
     }
 
-    async updateProfile(id: string, data: UpdateUserDto): Promise<ResponseServiceInterface<string>> {
+    async updateProfile(id: number, data: UpdateUserDto): Promise<ResponseServiceInterface<string>> {
         let user = await this.findOne({ where: { id } })
         if (!user) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null };
@@ -36,7 +36,7 @@ export class UserService {
         return { error: null, data: "Done!" }
     }
 
-    async changePassword(id: string, data: UpdatePasswordDto): Promise<ResponseServiceInterface<any>> {
+    async changePassword(id: number, data: UpdatePasswordDto): Promise<ResponseServiceInterface<any>> {
         let { new_password, old_password } = data
         let user = await this.findOne({ where: { id } })
         if (!user) {
