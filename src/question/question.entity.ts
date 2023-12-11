@@ -8,8 +8,11 @@ import { QuestionType } from 'src/common/enum/question.enum';
 
 @Entity({ name: "questions" })
 export class Question extends BaseEntity {
-    @Column()
+    @Column({type: "longtext"})
     title: string
+
+    @Column({type: "longtext"})
+    recommend: string
 
     @Column({ type: "enum", enum: QuestionType, default: QuestionType.single })
     type: QuestionType

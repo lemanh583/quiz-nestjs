@@ -9,6 +9,7 @@ import { Question } from './question.entity';
     ],
     providers: [
         QuestionService
-    ]
+    ],
+    exports: [QuestionService]
 })
 export class QuestionModule {}

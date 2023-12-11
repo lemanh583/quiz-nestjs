@@ -37,7 +37,7 @@ export class CategoryService {
     skip = (!!skip && skip) || 0
     take = (!!take && take) || 10
     return this.repository.find({
-      where: { deleted_at: null, ...where },
+      where,
       order,
       skip,
       take,
@@ -49,7 +49,7 @@ export class CategoryService {
     skip = (!!skip && skip) || 0
     take = (!!take && take) || 10
     return this.repository.findAndCount({
-      where: { deleted_at: null, ...where },
+      where,
       order,
       skip,
       take,
@@ -62,7 +62,7 @@ export class CategoryService {
   }
 
   async createCategory(data: CreateCategoryDto): Promise<ResponseServiceInterface<CategoryDto>> {
-    let { title, type } = data
+    let { title, type, lang_type } = data
     let withTime = false
     let slug = Helper.removeAccents(data.title, withTime)
     let check = await this.slugService.count({ where: { slug } })
@@ -70,10 +70,10 @@ export class CategoryService {
       return { error: MessageError.ERROR_EXISTS, data: null }
     }
     let newSlug = await this.slugService.save({ slug, type: SlugType.category })
-    let newCategory = await this.save({ title, type, slug: newSlug })
+    let newCategory = await this.save({ title, type, slug: newSlug, lang_type })
     return {
       error: null,
-      data: CategoryDto.plainToClass(newCategory as CategoryDto)
+      data: CategoryDto.plainToClass(newCategory as any)
     }
   }
 
@@ -100,7 +100,7 @@ export class CategoryService {
     await this.updateOne({ id: category.id }, category)
     return {
       error: null,
-      data: CategoryDto.plainToClass(category as CategoryDto)
+      data: CategoryDto.plainToClass(category as any)
     }
   }
 

@@ -7,8 +7,8 @@ export abstract class BaseEntity {
     @UpdateDateColumn()
     updated_at: Date
 
-    @Column({ default: null})
-    deleted_at: Date
+    // @Column({ default: null})
+    // deleted_at: Date
 
     @PrimaryGeneratedColumn()
     id: number;

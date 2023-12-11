@@ -5,11 +5,14 @@ import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 
 @Entity({ name: "answers" })
 export class Answer extends BaseEntity {
-    @Column()
+    @Column({type: "longtext"})
     title: string
 
     @Column({ default: false })
     correct: boolean
+
+    @Column()
+    default_order: number
 
     @ManyToOne(() => Question, e => e.answers)
     @JoinColumn({ name: 'question_id' })

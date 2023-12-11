@@ -23,7 +23,7 @@ export class MediaService {
 
     async find({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Media>): Promise<Media[]> {
         return this.repository.find({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -33,7 +33,7 @@ export class MediaService {
 
     async findAndCount({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Media>): Promise<[Media[], number]> {
         return this.repository.findAndCount({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,

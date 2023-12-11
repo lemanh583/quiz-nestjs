@@ -23,7 +23,7 @@ export class PostService {
 
     async find({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Post>): Promise<Post[]> {
         return this.repository.find({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -33,7 +33,7 @@ export class PostService {
 
     async findAndCount({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Post>): Promise<[Post[], number]> {
         return this.repository.findAndCount({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,

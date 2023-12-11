@@ -5,16 +5,17 @@ import { FindManyOptions, FindOneOptions, FindOptionsWhere, Repository } from 't
 
 @Injectable()
 export class QuestionService {
-    constructor(@InjectRepository(Question) private readonly repository: Repository<Question>){}
-    
+    constructor(
+        @InjectRepository(Question) private readonly repository: Repository<Question>,
+    ) { }
+
     async findOne(condition: FindOneOptions<Question>): Promise<Question> {
         return this.repository.findOne(condition)
     }
 
-    async updateOne(condition: FindOptionsWhere<Question>, data: Question): Promise<Question> {
-        let record = await this.repository.findOneBy(condition)
-        let updateRecord = Object.assign(record, data)
-        return this.repository.save(updateRecord);
+    async updateOne(condition: FindOptionsWhere<Question>, data: Partial<Question>, options?: Omit<FindOneOptions<Question>, 'where'>): Promise<Question> {
+        await this.repository.update(condition, data)
+        return this.repository.findOne({ where: condition, ...options })
     }
 
     async save(data: any): Promise<Question> {
@@ -24,7 +25,7 @@ export class QuestionService {
 
     async find({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Question>): Promise<Question[]> {
         return this.repository.find({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -34,7 +35,7 @@ export class QuestionService {
 
     async findAndCount({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Question>): Promise<[Question[], number]> {
         return this.repository.findAndCount({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -45,6 +46,5 @@ export class QuestionService {
     async count(condition: FindManyOptions<Question>): Promise<number> {
         return this.repository.count(condition)
     }
-
 }
 

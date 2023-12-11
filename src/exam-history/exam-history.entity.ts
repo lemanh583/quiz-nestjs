@@ -6,23 +6,23 @@ import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 
 @Entity({ name: "exam_histories" })
 export class ExamHistory extends BaseEntity {
-    @Column({ default: 0 })
+    @Column({type: "float", default: 0 })
     score: number
 
     @Column({ default: 0 })
     total_correct_answer: number
 
-    @Column()
+    @Column({ default: null })
     start_time: Date
 
-    @Column()
+    @Column({ default: null })
     end_time: Date
 
     @Column({ name: 'user_id' })
-    user_id: string
+    user_id: number
     
     @Column({ name: 'exam_id' })
-    exam_id: string
+    exam_id: number
 
     @ManyToOne(() => User, e => e.exam_histories)
     @JoinColumn({ name: 'user_id' })

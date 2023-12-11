@@ -7,10 +7,10 @@ import { Question } from 'src/question/question.entity';
 export class ExamQuestion extends BaseEntity {
 
     @Column({ name: "question_id" })
-    question_id: string
+    question_id: number
     
     @Column({ name: "exam_id" })
-    exam_id: string
+    exam_id: number
  
     @ManyToOne(() => Question, e => e.exam_questions)
     @JoinColumn({ name: 'question_id' })

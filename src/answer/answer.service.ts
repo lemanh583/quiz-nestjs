@@ -5,16 +5,17 @@ import { FindManyOptions, FindOneOptions, FindOptionsWhere, Repository } from 't
 
 @Injectable()
 export class AnswerService {
-    constructor(@InjectRepository(Answer) private readonly repository: Repository<Answer>) { }
+    constructor(
+        @InjectRepository(Answer) private readonly repository: Repository<Answer>,
+    ) { }
 
     async findOne(condition: FindOneOptions<Answer>): Promise<Answer> {
         return this.repository.findOne(condition)
     }
 
-    async updateOne(condition: FindOptionsWhere<Answer>, data: Answer): Promise<Answer> {
-        let record = await this.repository.findOneBy(condition)
-        let updateRecord = Object.assign(record, data)
-        return this.repository.save(updateRecord);
+    async updateOne(condition: FindOptionsWhere<Answer>, data: Partial<Answer>, options?: Omit<FindOneOptions<Answer>, 'where'>): Promise<Answer> {
+        await this.repository.update(condition, data)
+        return this.repository.findOne({ where: condition, ...options })
     }
 
     async save(data: any): Promise<Answer> {
@@ -24,7 +25,7 @@ export class AnswerService {
 
     async find({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Answer>): Promise<Answer[]> {
         return this.repository.find({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -34,7 +35,7 @@ export class AnswerService {
 
     async findAndCount({ where = {}, skip = 0, take = 10, order = { created_at: "DESC" }, ...args }: FindManyOptions<Answer>): Promise<[Answer[], number]> {
         return this.repository.findAndCount({
-            where: { deleted_at: null, ...where },
+            where,
             order,
             skip,
             take,
@@ -45,5 +46,4 @@ export class AnswerService {
     async count(condition: FindManyOptions<Answer>): Promise<number> {
         return this.repository.count(condition)
     }
-
 }

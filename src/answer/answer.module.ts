@@ -7,6 +7,7 @@ import { Answer } from './answer.entity';
   imports: [
     TypeOrmModule.forFeature([Answer])
   ],
-  providers: [AnswerService]
+  providers: [AnswerService],
+  exports: [AnswerService]
 })
 export class AnswerModule {}

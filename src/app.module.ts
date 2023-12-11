@@ -21,7 +21,7 @@ import { QuestionModule } from './question/question.module';
 import { AnswerController } from './answer/answer.controller';
 import { AnswerModule } from './answer/answer.module';
 import { HistoryController } from './exam-history/exam-history.controller';
-import { HistoryModule } from './exam-history/exam-history.module';
+import { ExamHistoryModule } from './exam-history/exam-history.module';
 import { ExamController } from './exam/exam.controller';
 import { ExamModule } from './exam/exam.module';
 import { PostController } from './post/post.controller';
@@ -45,6 +45,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { UploadMiddleware } from './middleware/upload.middleware';
 import { ExamQuestionModule } from './exam-question/exam-question.module';
 import { ExamQuestion } from './exam-question/exam-question.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -74,22 +76,23 @@ import { ExamQuestion } from './exam-question/exam-question.entity';
       synchronize: true,
       // logging: true
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/static'
+    }),
     UserModule,
     AuthModule,
     CategoryModule,
     SlugModule,
     QuestionModule,
     AnswerModule,
-    HistoryModule,
+    ExamHistoryModule,
     ExamModule,
     PostModule,
     MediaModule,
     HistoryAnswerModule,
     AdminModule,
     ExamQuestionModule,
-    // MulterModule.registerAsync({
-    //   useClass: UploadMiddleware,
-    // })
   ],
 })
 export class AppModule { }

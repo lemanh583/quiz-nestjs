@@ -8,9 +8,6 @@ export abstract class BaseDto {
     updated_at: Date
 
     @Expose()
-    deleted_at: Date | null
-
-    @Expose()
     id: number
 
     static plainToClass<T>(this: new (...args: any[]) => T, plain: T) {

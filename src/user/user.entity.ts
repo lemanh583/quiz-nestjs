@@ -3,6 +3,7 @@ import { BaseEntity } from 'src/common/base/base.entity';
 import { UserRole } from 'src/common/enum/user.enum';
 import * as argon2 from 'argon2';
 import { ExamHistory } from 'src/exam-history/exam-history.entity';
+import { Exam } from 'src/exam/exam.entity';
 
 @Entity({ name: "users"})
 export class User extends BaseEntity {
@@ -20,6 +21,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => ExamHistory, (e) => e.user)
     exam_histories: ExamHistory[]
+
+    @OneToMany(() => Exam, (e) => e.user)
+    exams: Exam[]
 
     @BeforeInsert()
     async hasPassword(): Promise<void> {

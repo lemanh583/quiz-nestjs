@@ -7,11 +7,27 @@ import { ExamHistory } from 'src/exam-history/exam-history.entity';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { ExamQuestion } from 'src/exam-question/exam-question.entity';
 import { ExamLangType, ExamType } from 'src/common/enum/exam.enum';
+import { User } from 'src/user/user.entity';
 
 @Entity({ name: "exams" })
 export class Exam extends BaseEntity {
     @Column()
     title: string
+
+    @Column({ default: false })
+    hidden: boolean
+
+    @Column({ default: 0 })
+    time_work_minutes: number
+
+    @Column({ default: 1000 })
+    total_work: number
+
+    @Column({ default: 10 })
+    score: number
+
+    @Column({ type: "longtext", default: null })
+    log_auto_category_id: string
 
     @Column({ default: null })
     time_start: Date
@@ -39,14 +55,21 @@ export class Exam extends BaseEntity {
     @JoinColumn({ name: 'category_id' })
     category: Category;
 
+    @ManyToOne(() => User, user => user.exams, {cascade: true,  onDelete: "CASCADE" })
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @Column({ name: "user_id" })
+    user_id: number
+
     @Column({ name: "category_id" })
     category_id: number
 
     @OneToMany(() => ExamHistory, (e) => e.exam)
     exam_histories: ExamHistory[]
 
-    @OneToMany(() => HistoryAnswer, (e) => e.exam)
-    history_answers: HistoryAnswer[]
+    // @OneToMany(() => HistoryAnswer, (e) => e.exam)
+    // history_answers: HistoryAnswer[]
 
     @OneToMany(() => ExamQuestion, (e) => e.exam)
     exam_questions: ExamQuestion[]

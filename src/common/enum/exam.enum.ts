@@ -8,3 +8,8 @@ export enum ExamLangType {
     en = "en",
     vi = "vi",
 }
+
+export enum uploadExamType {
+    multiple = "multiple",
+    single = "single",
+}

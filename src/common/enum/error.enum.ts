@@ -3,6 +3,7 @@ enum MessageError {
     ERROR_EXISTS = "exists",
     ERROR_SIGN_IN = "wrong email or password",
     ERROR_INVALID_PASSWORD = "invalid password",
+    ERROR_EXPIRES_EXAM = "expires exam",
 }
 
 export {
