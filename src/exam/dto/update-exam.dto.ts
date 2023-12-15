@@ -1,5 +1,5 @@
 import { Expose, Transform } from "class-transformer";
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, Min, IsInt  } from "class-validator"
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, Min, IsInt, IsArray, ArrayUnique, ArrayNotEmpty  } from "class-validator"
 import { ExamLangType, ExamType } from "src/common/enum/exam.enum";
 
 export class UpdateExamDto {
@@ -10,8 +10,11 @@ export class UpdateExamDto {
     title: string;
 
     @IsOptional()
-    @IsInt()
-    category_id: number
+    @IsArray()
+    @ArrayNotEmpty()
+    @ArrayUnique()
+    @IsInt({ each: true })
+    category_ids: number[]
 
     @IsOptional()
     @IsDate()

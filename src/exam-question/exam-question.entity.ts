@@ -12,11 +12,11 @@ export class ExamQuestion extends BaseEntity {
     @Column({ name: "exam_id" })
     exam_id: number
  
-    @ManyToOne(() => Question, e => e.exam_questions)
+    @ManyToOne(() => Question, e => e.exam_questions, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'question_id' })
     question: Question;
 
-    @ManyToOne(() => Exam, e => e.exam_questions)
+    @ManyToOne(() => Exam, e => e.exam_questions, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'exam_id' })
     exam: Exam;
 

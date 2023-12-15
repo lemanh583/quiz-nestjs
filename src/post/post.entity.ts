@@ -17,11 +17,11 @@ export class Post extends BaseEntity {
     @Column()
     view: number
 
-    @OneToOne(() => Slug)
+    @OneToOne(() => Slug, { onDelete: "CASCADE"})
     @JoinColumn({ name: "slug_id" })
     slug: Slug
 
-    @ManyToOne(() => Category, category => category.posts)
+    @ManyToOne(() => Category, category => category.posts, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'category_id' })
     category: Category;
 }

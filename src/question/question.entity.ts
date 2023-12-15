@@ -11,7 +11,7 @@ export class Question extends BaseEntity {
     @Column({type: "longtext"})
     title: string
 
-    @Column({type: "longtext"})
+    @Column({type: "longtext", default: null})
     recommend: string
 
     @Column({ type: "enum", enum: QuestionType, default: QuestionType.single })

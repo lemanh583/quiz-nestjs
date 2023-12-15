@@ -10,6 +10,6 @@ export class FilterDto {
     lang_type?: string
 
     @IsOptional()
-    @IsInt()
-    category_id?: number
+    @IsInt({ each: true })
+    category_ids?: number[]
 }

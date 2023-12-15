@@ -1,4 +1,4 @@
-import { Expose, plainToClass } from "class-transformer"
+import { Expose, Transform, plainToClass } from "class-transformer"
 
 export abstract class BaseDto {
     @Expose()

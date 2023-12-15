@@ -25,4 +25,28 @@ export class Helper {
     slug = withTime ? slug + "-" + Date.now() : slug + "";
     return slug;
   }
+
+  static transformQueryList({ page, limit }: any): { page: number, limit: number } {
+    let castPage = Number(page)
+    let castLimit = Number(limit)
+    page = castPage && castPage > 0 ? Number(page) : 1
+    limit = castLimit && castLimit > 0 ? Number(limit) : 10
+    return { page: page, limit: limit }
+  }
+
+  static calculateTimeWorkExam(startTime: Date, endTime: Date): string {
+    if (!endTime) return "00:00:00";
+    const timeDiffInSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    
+    const hours = Math.floor(timeDiffInSeconds / 3600);
+    const minutes = Math.floor((timeDiffInSeconds % 3600) / 60);
+    const seconds = timeDiffInSeconds % 60;
+
+    const formattedHours = hours < 10 ? `0${hours}` : hours.toString();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds.toString();
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
 }

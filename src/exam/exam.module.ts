@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exam } from './exam.entity';
@@ -16,16 +16,23 @@ import { ExamHistoryModule } from 'src/exam-history/exam-history.module';
 import { HistoryAnswerModule } from 'src/history-answer/history-answer.module';
 import { ExamHistory } from 'src/exam-history/exam-history.entity';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
+import { Category } from 'src/category/category.entity';
+import { Slug } from 'src/slug/slug.entity';
+import { User } from 'src/user/user.entity';
+import { CategoryExam } from 'src/category-exam/category-exam.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Exam, Question, Answer, ExamQuestion, ExamHistory, HistoryAnswer]),
-    SlugModule,
-    CategoryModule,
-    UserModule,
-    ExamQuestionModule,
-    ExamHistoryModule,
-    HistoryAnswerModule
+    TypeOrmModule.forFeature([
+      Exam, 
+      ExamQuestion, 
+      ExamHistory, 
+      HistoryAnswer, 
+      Category, 
+      Slug,
+      User,
+      CategoryExam
+    ])
   ],
   controllers: [
     ExamController
@@ -33,4 +40,4 @@ import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
   providers: [ExamService],
   exports: [ExamService]
 })
-export class ExamModule {}
+export class ExamModule { }

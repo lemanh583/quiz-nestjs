@@ -22,7 +22,7 @@ export class HistoryAnswer extends BaseEntity {
     // @Column()
     // order_questions: string
 
-    @ManyToOne(() => Question, e => e.history_answers)
+    @ManyToOne(() => Question, e => e.history_answers, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'question_id' })
     question: Question;
 
@@ -32,7 +32,7 @@ export class HistoryAnswer extends BaseEntity {
     // @JoinColumn({ name: 'exam_id' })
     // exam: Exam;
 
-    @ManyToOne(() => ExamHistory, e => e.history_answers)
+    @ManyToOne(() => ExamHistory, e => e.history_answers, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'exam_history_id' })
     exam_history: ExamHistory;
 

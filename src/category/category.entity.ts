@@ -5,6 +5,8 @@ import { Exam } from 'src/exam/exam.entity';
 import { Post } from 'src/post/post.entity';
 import { CategoryType } from 'src/common/enum/category.enum';
 import { ExamLangType } from 'src/common/enum/exam.enum';
+import { Transaction } from 'src/transaction/transaction.entity';
+import { CategoryExam } from 'src/category-exam/category-exam.entity';
 
 @Entity({ name: "categories"})
 export class Category extends BaseEntity {
@@ -20,16 +22,22 @@ export class Category extends BaseEntity {
     @Column({ type: "enum", enum: ExamLangType, default: ExamLangType.vi })
     lang_type: ExamLangType
 
-    @OneToOne(() => Slug)
+    @OneToOne(() => Slug, { onDelete: "CASCADE"})
     @JoinColumn({ name: "slug_id"})
     slug: Slug
 
     @Column({ name: "slug_id" })
     slug_id: number
 
-    @OneToMany(() => Exam, (e) => e.category)
-    exams: Exam[]
+    // @OneToMany(() => Exam, (e) => e.category)
+    // exams: Exam[]
 
     @OneToMany(() => Post, (e) => e.category)
     posts: Post[]
+
+    @OneToMany(() => CategoryExam, (e) => e.category)
+    category_exams: CategoryExam[]
+
+    @OneToMany(() => Transaction, (e) => e.category)
+    transactions: Transaction[]
 }

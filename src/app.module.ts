@@ -1,34 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
-// import { AuthController } from './auth/auth.controller';
-// import { AuthModule } from './auth/auth.module';
-// import { AuthService } from './auth/auth.service';
-import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
-import { CategoryController } from './category/category.controller';
 import { CategoryModule } from './category/category.module';
-import { SlugController } from './slug/slug.controller';
-import { SlugService } from './slug/slug.service';
 import { SlugModule } from './slug/slug.module';
-import { QuestionController } from './question/question.controller';
-import { QuestionService } from './question/question.service';
 import { QuestionModule } from './question/question.module';
-import { AnswerController } from './answer/answer.controller';
 import { AnswerModule } from './answer/answer.module';
-import { HistoryController } from './exam-history/exam-history.controller';
 import { ExamHistoryModule } from './exam-history/exam-history.module';
-import { ExamController } from './exam/exam.controller';
 import { ExamModule } from './exam/exam.module';
-import { PostController } from './post/post.controller';
 import { PostModule } from './post/post.module';
-import { MediaController } from './media/media.controller';
 import { MediaModule } from './media/media.module';
-import { HistoryAnswerController } from './history-answer/history-answer.controller';
 import { HistoryAnswerModule } from './history-answer/history-answer.module';
 import { Slug } from './slug/slug.entity';
 import { Category } from './category/category.entity';
@@ -39,14 +22,18 @@ import { Post } from './post/post.entity';
 import { ExamHistory } from './exam-history/exam-history.entity';
 import { HistoryAnswer } from './history-answer/history-answer.entity';
 import { Media } from './media/media.entity';
-import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { UploadMiddleware } from './middleware/upload.middleware';
 import { ExamQuestionModule } from './exam-question/exam-question.module';
 import { ExamQuestion } from './exam-question/exam-question.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { Package } from './package/package.entity';
+import { Transaction } from './transaction/transaction.entity';
+import { CategoryExam } from './category-exam/category-exam.entity';
+import { SeederModule } from './seeder/seeder.module';
+import { TransactionModule } from './transaction/transaction.module';
+import { PackageController } from './package/package.controller';
+import { PackageModule } from './package/package.module';
 
 @Module({
   imports: [
@@ -71,7 +58,10 @@ import { join } from 'path';
         ExamHistory,
         HistoryAnswer,
         Media,
-        ExamQuestion
+        ExamQuestion,
+        Package,
+        Transaction,
+        CategoryExam
       ],
       synchronize: true,
       // logging: true
@@ -83,16 +73,19 @@ import { join } from 'path';
     UserModule,
     AuthModule,
     CategoryModule,
-    SlugModule,
     QuestionModule,
     AnswerModule,
     ExamHistoryModule,
     ExamModule,
+    SlugModule,
     PostModule,
     MediaModule,
     HistoryAnswerModule,
     AdminModule,
     ExamQuestionModule,
+    SeederModule,
+    TransactionModule,
+    PackageModule,
   ],
 })
 export class AppModule { }

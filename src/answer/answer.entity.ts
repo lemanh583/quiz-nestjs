@@ -11,10 +11,7 @@ export class Answer extends BaseEntity {
     @Column({ default: false })
     correct: boolean
 
-    @Column()
-    default_order: number
-
-    @ManyToOne(() => Question, e => e.answers)
+    @ManyToOne(() => Question, e => e.answers, { onDelete: "CASCADE" })
     @JoinColumn({ name: 'question_id' })
     question: Question;
 

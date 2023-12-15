@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './category.entity';
 import { FindManyOptions, FindOneOptions, FindOptionsOrder, FindOptionsWhere, Like, Not, Repository, FindOptionsRelations } from 'typeorm';
@@ -16,7 +16,6 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category) private readonly repository: Repository<Category>,
     @InjectRepository(Slug) private readonly slugRepository: Repository<Slug>,
-    private readonly slugService: SlugService
   ) { }
 
   async findOne(condition: FindOneOptions<Category>): Promise<Category> {
@@ -65,11 +64,13 @@ export class CategoryService {
     let { title, type, lang_type } = data
     let withTime = false
     let slug = Helper.removeAccents(data.title, withTime)
-    let check = await this.slugService.count({ where: { slug } })
+    let check = await this.slugRepository.count({ where: { slug } })
     if (!!check) {
       return { error: MessageError.ERROR_EXISTS, data: null }
     }
-    let newSlug = await this.slugService.save({ slug, type: SlugType.category })
+    let newSlug = await this.slugRepository.save(
+      Object.assign(new Slug(), { slug, type: SlugType.category })
+    )
     let newCategory = await this.save({ title, type, slug: newSlug, lang_type })
     return {
       error: null,
@@ -86,12 +87,12 @@ export class CategoryService {
     let withTime = false
     let slug = Helper.removeAccents(title, withTime)
     if (title) {
-      let checkSlug = await this.slugService.findOne({ where: { slug, id: Not(category.slug_id) } })
+      let checkSlug = await this.slugRepository.findOne({ where: { slug, id: Not(category.slug_id) } })
       if (!!checkSlug) {
         return { error: MessageError.ERROR_EXISTS, data: null }
       }
       if (slug != category.slug.slug) {
-        let updateSlug = await this.slugService.updateOne({ id: category.slug_id }, { slug })
+        let updateSlug = await this.slugRepository.save({ id: category.slug_id, slug })
         category.title = title
         category.slug = updateSlug
       }
@@ -126,7 +127,8 @@ export class CategoryService {
           id: true,
           slug: true,
           type: true
-        }
+        },
+        hidden: false
       },
       order: payload.sort,
       take: limit,

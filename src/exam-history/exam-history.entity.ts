@@ -24,11 +24,11 @@ export class ExamHistory extends BaseEntity {
     @Column({ name: 'exam_id' })
     exam_id: number
 
-    @ManyToOne(() => User, e => e.exam_histories)
+    @ManyToOne(() => User, e => e.exam_histories, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Exam, e => e.exam_histories)
+    @ManyToOne(() => Exam, e => e.exam_histories, { onDelete: "CASCADE"})
     @JoinColumn({ name: 'exam_id' })
     exam: Exam;
 
