@@ -7,13 +7,15 @@ import { CategoryModule } from 'src/category/category.module';
 import { ExamModule } from 'src/exam/exam.module';
 import { JwtMiddleware } from 'src/middleware/jwt.middleware';
 import { TransactionModule } from 'src/transaction/transaction.module';
+import { PostModule } from 'src/post/post.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Slug]),
         CategoryModule,
         ExamModule,
-        TransactionModule
+        TransactionModule,
+        PostModule
     ],
     controllers: [SlugController],
     providers: [

@@ -4,18 +4,21 @@ import { MediaType } from 'src/common/enum/media.enum';
 
 @Entity({ name: "medias"})
 export class Media extends BaseEntity {
-    @Column()
+    @Column({ default: null })
+    name: string
+
+    @Column({ default: null })
     type: string
 
-    @Column()
-    size: string
+    @Column({ default: null})
+    size: number
 
-    @Column()
+    @Column({ default: null})
     src: string
 
-    @Column()
-    ref_id: string
+    @Column({ default: null })
+    ref_id: number
 
-    @Column({ type: "enum", enum: MediaType })
+    @Column({ type: "enum", enum: MediaType, default: null })
     ref_type: MediaType
 }

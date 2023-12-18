@@ -23,6 +23,8 @@ import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { User } from 'src/user/user.entity';
 import { Category } from 'src/category/category.entity';
 import { CategoryExam } from 'src/category-exam/category-exam.entity';
+import { Media } from 'src/media/media.entity';
+import { MediaType } from 'src/common/enum/media.enum';
 
 @Injectable()
 export class ExamService {
@@ -43,6 +45,8 @@ export class ExamService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(CategoryExam)
         private readonly categoryExamRepository: Repository<CategoryExam>,
+        @InjectRepository(Media)
+        private readonly mediaRepository: Repository<Media>,
         private dataSource: DataSource
     ) { }
 
@@ -413,7 +417,7 @@ export class ExamService {
             query.andWhere("s.slug LIKE :search", { search: `%${search}%` })
         }
         if (payload?.filter?.type) {
-            query.andWhere("e.type = :type", { type: payload.filter.type})
+            query.andWhere("e.type = :type", { type: payload.filter.type })
         }
         if (payload?.filter?.category_ids) {
             query.andWhere("ce.category_id IN (:...category_ids)", { category_ids: payload?.filter?.category_ids })
@@ -616,6 +620,7 @@ export class ExamService {
         if (!exam || exam.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
+        let medias = await this.mediaRepository.find({ where: { ref_id: exam.id, ref_type: MediaType.exam } })
         // let [histories, total] = await this.examHistoryRepository.findAndCount({
         //     where: {
         //         user_id: user.id,
@@ -626,7 +631,27 @@ export class ExamService {
         //     skip: (page - 1) * limit
         // })
 
-        return { error: null, data: exam }
+        return { error: null, data: { exam, medias } }
+    }
+
+    async getExamForAdmin(exam_id: number, query: any): Promise<ResponseServiceInterface<any>> {
+        let { page = 1, limit = 10 } = Helper.transformQueryList(query)
+        let exam = await this.findOne({ where: { id: exam_id } })
+        if (!exam || exam.hidden) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let medias = await this.mediaRepository.find({ where: { ref_id: exam.id, ref_type: MediaType.exam } })
+        let buildQuery = this.examQuestionRepository
+            .createQueryBuilder("eq")
+            .leftJoin("eq.question", "q")
+            .addSelect(["q.id", "q.title", "q.type"])
+            .leftJoin("q.answers", "a")
+            .addSelect(["a.id", "a.title", "a.correct"])
+            .where("eq.exam_id = :exam_id", { exam_id: exam.id })
+            .skip((page - 1) * limit)
+            .take(limit)
+        let [questions, total] = await buildQuery.getManyAndCount()
+        return { error: null, data: { exam, questions, page, total, limit, medias } }
     }
 
     async handleSlug(): Promise<ResponseServiceInterface<any>> {

@@ -20,6 +20,7 @@ import { Category } from 'src/category/category.entity';
 import { Slug } from 'src/slug/slug.entity';
 import { User } from 'src/user/user.entity';
 import { CategoryExam } from 'src/category-exam/category-exam.entity';
+import { Media } from 'src/media/media.entity';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { CategoryExam } from 'src/category-exam/category-exam.entity';
       Category, 
       Slug,
       User,
-      CategoryExam
+      CategoryExam,
+      Media
     ])
   ],
   controllers: [

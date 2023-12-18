@@ -9,6 +9,7 @@ import { MediaController } from './media.controller';
     TypeOrmModule.forFeature([Media])
   ],
   controllers: [MediaController],
-  providers: [MediaService]
+  providers: [MediaService],
+  exports: [MediaService]
 })
 export class MediaModule {}

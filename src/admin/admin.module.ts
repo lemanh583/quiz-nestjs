@@ -8,6 +8,9 @@ import { UploadMiddleware } from 'src/middleware/upload.middleware';
 import { QuestionModule } from 'src/question/question.module';
 import { AnswerModule } from 'src/answer/answer.module';
 import { TransactionModule } from 'src/transaction/transaction.module';
+import { MediaModule } from 'src/media/media.module';
+import { PostModule } from 'src/post/post.module';
+import { UserModule } from 'src/user/user.module';
 @Module({
   imports: [
     CategoryModule,
@@ -15,6 +18,9 @@ import { TransactionModule } from 'src/transaction/transaction.module';
     QuestionModule,
     AnswerModule,
     TransactionModule,
+    MediaModule,
+    PostModule,
+    UserModule,
     MulterModule.registerAsync({
       useClass: UploadMiddleware,
     })

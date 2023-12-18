@@ -8,6 +8,7 @@ import { ExamService } from 'src/exam/exam.service';
 import { CurrentUser } from 'src/auth/decorator/user.decorator';
 import { PayloadTokenInterface } from 'src/common/interface';
 import { TransactionService } from 'src/transaction/transaction.service';
+import { PostService } from 'src/post/post.service';
 
 @Controller('')
 export class SlugController {
@@ -15,7 +16,8 @@ export class SlugController {
         private readonly slugService: SlugService,
         private readonly categoryService: CategoryService,
         private readonly examService: ExamService,
-        private readonly transactionService: TransactionService
+        private readonly transactionService: TransactionService,
+        private readonly postService: PostService,
     ) { }
 
     @Get('/test')
@@ -44,30 +46,37 @@ export class SlugController {
             let rs: any
             switch (slug_db.type) {
                 case SlugType.category:
-                    if (!user?.id) return
+                    console.log(!user?.id)
+                    if (!user?.id) {
+                        rs = { list: []}
+                        break;
+                    }
                     let [transactionCategory, category] = await Promise.all([
                         this.transactionService.find({ where: { user_id: user.id } }),
-                        this.categoryService.findOne({ where: { slug: slug_db } })
+                        this.categoryService.findOne({ where: { slug_id: slug_db.id } })
                     ])
                     let category_ids = transactionCategory.map(item => item.category_id)
                     if(!category_ids.includes(category.id)) return
                     if (category.type == CategoryType.exam) {
-                        if(!body.filter) body.filter
+                        if(!body) body = {}
+                        if(!body?.filter) body.filter = {}
                         body.filter.category_ids = [category.id]
                         let { data } = await this.examService.getListExam(body)
                         rs = data
                     }
 
                     if (category.type == CategoryType.post) {
-
+                        let { data } = await this.postService.listPost(body)
+                        rs = data
                     }
                     break;
                 case SlugType.exam:
-                    let { data } = await this.examService.getExam(slug)
-                    rs = { data }
+                    let rs_get_exam = await this.examService.getExam(slug)
+                    rs = rs_get_exam.data
                     break;
                 case SlugType.post:
-
+                    let { data } = await this.postService.getPost(slug)
+                    rs = data
                     break;
 
                 default:
@@ -79,6 +88,7 @@ export class SlugController {
                 ...rs
             }
         } catch (error) {
+            console.error(error);
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }

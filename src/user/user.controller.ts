@@ -30,7 +30,7 @@ export class UserController {
     }
 
     @Get('/transactions')
-    async detailHistory(@CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
+    async listTransaction(@CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
         try {
             let { error, data } = await this.userService.listTransactionForUser(user.id, query)
             if (error) {

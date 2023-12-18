@@ -7,7 +7,7 @@ import { User } from 'src/user/user.entity';
 import { Package } from 'src/package/package.entity';
 import { MessageError } from 'src/common/enum/error.enum';
 import { Category } from 'src/category/category.entity';
-import { CreateTransactionDto } from './dto';
+import { CreateTransactionDto, UpdateTransactionDto } from './dto';
 import { BaseListFilterDto } from 'src/common/base/base.list';
 
 @Injectable()
@@ -142,7 +142,7 @@ export class TransactionService {
         return condition
     }
 
-    async updateTransaction(transaction_id: number, body: any): Promise<ResponseServiceInterface<any>> {
+    async updateTransaction(transaction_id: number, body: UpdateTransactionDto): Promise<ResponseServiceInterface<any>> {
         let { user_id, package_id, price, category_id } = body
         let transaction = await this.findOne({ where: { id: transaction_id } })
         if (!transaction) {

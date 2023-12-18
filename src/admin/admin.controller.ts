@@ -21,6 +21,12 @@ import { AnswerService } from 'src/answer/answer.service';
 import { CreateAnswerDto, UpdateAnswerDto } from 'src/answer/dto';
 import { CreateTransactionDto } from 'src/transaction/dto';
 import { TransactionService } from 'src/transaction/transaction.service';
+import * as fs from "fs"
+import { MediaService } from 'src/media/media.service';
+import { CreateMediaDto } from 'src/media/dto';
+import { PostService } from 'src/post/post.service';
+import { CreatePostDto, UpdatePostDto } from 'src/post/dto';
+import { UserService } from 'src/user/user.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,7 +37,10 @@ export class AdminController {
         private readonly examService: ExamService,
         private readonly questionService: QuestionService,
         private readonly answerService: AnswerService,
-        private readonly transactionService: TransactionService
+        private readonly transactionService: TransactionService,
+        private readonly mediaService: MediaService,
+        private readonly postService: PostService,
+        private readonly userService: UserService
     ) { }
 
     /**
@@ -53,6 +62,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/category/create', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -71,11 +81,11 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/category/update/:id', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
-
 
     @Post('/category/list')
     async listCategory(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Category>> {
@@ -90,6 +100,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/category/list', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -101,6 +112,25 @@ export class AdminController {
      * @param body 
      * @returns 
      */
+
+    @Get('/exam/:id')
+    async getExam(@Param("id", ParseIntPipe) id: number, @Query() query: any): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.examService.getExamForAdmin(id, query)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/exam/:id', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 
     @Post('/exam/create')
     async createExam(@Body() body: CreateExamDto, @CurrentUser() user: PayloadTokenInterface): Promise<ResponseInterface<any>> {
@@ -115,6 +145,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/exam/create', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -133,6 +164,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/exam/update/:id', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -151,7 +183,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
-            console.log(error)
+            console.error('/admin/exam/list', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -177,6 +209,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/exam/upload', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -195,6 +228,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/exam/auto-generate', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -213,6 +247,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/exam/users', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -230,10 +265,62 @@ export class AdminController {
     @Post('/upload')
     @UseInterceptors(FilesInterceptor('files'))
     @UsePipes(ValidateMultiFileSizePipe)
-    uploadFile(@UploadedFiles() files: Array<Express.Multer.File>) {
-        // console.log(files);
+    async uploadFile(@UploadedFiles() files: Array<Express.Multer.File>, @Body() body: CreateMediaDto) {
+        try {
+            let { error, data } = await this.mediaService.saveMultipleMedia(files, body);
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/upload', error)
+            files.map((file) => fs.unlinkSync(file.path))
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 
+    @Post('/media/list')
+    async listMedia(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.mediaService.listMedia(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/media/list', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Delete('/media/delete/:id')
+    async deleteMedia(@Param('id', ParseIntPipe) id: number): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.mediaService.deleteMedia(id)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/media/delete/:id', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 
 
     /**
@@ -255,6 +342,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/question/list', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -273,6 +361,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/question/create', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -291,6 +380,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/question/update/:id', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -309,6 +399,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/question/add-multiple-question', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -327,6 +418,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/question/delete/:id', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -351,6 +443,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/answer/create', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -370,6 +463,7 @@ export class AdminController {
                 data
             }
         } catch (error) {
+            console.error('/admin/answer/update/:id', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -394,6 +488,7 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/transaction/create', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -413,6 +508,135 @@ export class AdminController {
                 ...data
             }
         } catch (error) {
+            console.error('/admin/transaction/list', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+
+    /**
+     * POST SERVICE
+     * @param body 
+     * @returns 
+     */
+
+    @Get('/post/:slug')
+    async getPost(@Param('slug') slug: string): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.postService.getPost(slug)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/post/:slug', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Post('/post/create')
+    async createPost(@Body() body: CreatePostDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.postService.createPost(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/post/create', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Put('/post/update/:id')
+    async updatePost(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePostDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.postService.updatePost(id, body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/post/update/:id', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Delete('/post/delete/:id')
+    async deletePost(@Param('id', ParseIntPipe) id: number): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.postService.deletePost(id)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/post/delete', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Post('/post/list')
+    async listPost(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Exam>> {
+        try {
+            let { error, data } = await this.postService.listPost(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/post/list', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+
+    /**
+     * USER SERVICE
+     * @param body 
+     * @returns 
+     */
+
+    @Post('/user/list')
+    async listUser(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Category>> {
+        try {
+            let { error, data } = await this.userService.listUser(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/user/list', error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
