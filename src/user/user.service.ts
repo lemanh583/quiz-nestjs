@@ -3,14 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { FindManyOptions, FindOneOptions, FindOptionsWhere, Not, Repository } from 'typeorm';
 import { UpdatePasswordDto, UpdateUserDto } from './dto';
-import { ResponseServiceInterface } from 'src/common/interface';
+import { PayloadTokenInterface, ResponseServiceInterface } from 'src/common/interface';
 import { MessageError } from 'src/common/enum/error.enum';
 import * as argon2 from "argon2"
+import { Transaction } from 'src/transaction/transaction.entity';
+import { Helper } from 'src/common/helper';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private repository: Repository<User>) { }
-    
+    constructor(
+        @InjectRepository(User) 
+        private repository: Repository<User>,
+        @InjectRepository(Transaction) 
+        private transactionRepository: Repository<Transaction>
+    ) { }
+
     async findOne(condition: FindOneOptions<User>): Promise<User> {
         return this.repository.findOne(condition)
     }
@@ -57,7 +64,7 @@ export class UserService {
         if (data.email) {
             let email = await this.findOne({ where: { email: data.email, id: Not(user.id) } })
             if (email) {
-                return { error: MessageError.ERROR_EXISTS, data: null}
+                return { error: MessageError.ERROR_EXISTS, data: null }
             }
         }
         await this.updateOne({ id }, data as User)
@@ -78,5 +85,46 @@ export class UserService {
         await this.updateOne({ id }, { password: hash } as User)
         return { error: null, data: "Done!" };
     }
+
+    async detailUser(user_decode: PayloadTokenInterface): Promise<ResponseServiceInterface<any>> {
+        let user = await this.findOne({
+            where: {
+                id: user_decode.id,
+                transactions: {
+                    user_id: user_decode.id,
+                }
+            },
+            relations: {
+                transactions: {
+                    category: true
+                }
+            }
+        })
+        console.log(user)
+        if (!user) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        return { error: null, data: user}
+    }
+
+    async listTransactionForUser(user_id: number, query: any) : Promise<ResponseServiceInterface<any>> {
+        let { page = 1, limit = 10 } = Helper.transformQueryList(query);
+        let user = await this.findOne({ where: { id: user_id }})
+        if(!user) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let [list, total] = await this.transactionRepository.findAndCount({ 
+            where: { user_id: user.id },
+            relations: {
+                category: true
+            }
+        })
+        return { error: null, data: { list, total, page, limit }}
+    }
+
+    async listUsers(): Promise<ResponseServiceInterface<any>> {
+        return
+    }
+
 
 }

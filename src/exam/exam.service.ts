@@ -610,7 +610,7 @@ export class ExamService {
         return { error: null, data: { message: "Done!" } }
     }
 
-    async getExam(slug: string, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
+    async getExam(slug: string): Promise<ResponseServiceInterface<any>> {
         // let { page = 1, limit = 10 } = query
         let exam = await this.findOne({ where: { slug: { slug } } })
         if (!exam || exam.hidden) {
@@ -631,6 +631,29 @@ export class ExamService {
 
     async handleSlug(): Promise<ResponseServiceInterface<any>> {
         return
+    }
+
+    async usersInExam(slug: string, body: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
+        let { page = 1, limit = 20, sort } = body
+        let exam = await this.findOne({ where: { slug: { slug } } })
+        if (!exam) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let [histories, total] = await this.examHistoryRepository.findAndCount({
+            where: {
+                exam_id: exam.id
+            },
+            order: sort || { created_at: "DESC" },
+            take: limit,
+            skip: (page - 1) * limit
+        })
+        histories = histories.map(item => {
+            return {
+                ...item,
+                total_minute_work: Helper.calculateTimeWorkExam(item.start_time, item.end_time)
+            }
+        })
+        return { error: null, data: { list: histories, total, page, limit } }
     }
 
 }   

@@ -57,7 +57,7 @@ export class ExamHistoryService {
         return this.repository.count(condition)
     }
 
-    async getListHistory(slug: string, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
+    async getListHistory(slug: string, user_id: number, query: any): Promise<ResponseServiceInterface<any>> {
         let { page, limit } = Helper.transformQueryList(query)
         let exam = await this.examRepository.findOne({ where: { slug: { slug } } })
         if (!exam || exam.hidden) {
@@ -65,7 +65,7 @@ export class ExamHistoryService {
         }
         let [histories, total] = await this.findAndCount({
             where: {
-                user_id: user.id,
+                user_id: user_id,
                 exam_id: exam.id
             },
             order: { created_at: "DESC" },
@@ -81,8 +81,8 @@ export class ExamHistoryService {
         return { error: null, data: { list: histories, total, page, limit } }
     }
 
-    async detailHistory(historyId: number, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
-        let history = await this.findOne({ where: { id: historyId, user_id: user.id } })
+    async detailHistory(history_id: number, user_id: number, query: any): Promise<ResponseServiceInterface<any>> {
+        let history = await this.findOne({ where: { id: history_id, user_id: user_id } })
         if (!history) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -98,31 +98,31 @@ export class ExamHistoryService {
             .take(limit)
             .getManyAndCount()
 
-        let newMap = histories.map(h => {
+        let new_map = histories.map(h => {
             h.question.answers.sort((a, b) => a.id - b.id)
             h.question.answers = h.question.answers.map((item) => {
-                let newItem = {
+                let new_item = {
                     ...item,
                     user_choose: +(h.answer_id) == item.id ? true : false
                 }
-                !history.end_time && (delete newItem.correct)
-                return newItem
+                !history.end_time && (delete new_item.correct)
+                return new_item
             })
 
-            let newItemMap = {
+            let new_item_map = {
                 q_correct: h.correct,
                 score: h.score,
                 ...h.question,
                 answers: h.question.answers,
             }
             if (!history.end_time) {
-                delete newItemMap.q_correct
-                delete newItemMap.score
+                delete new_item_map.q_correct
+                delete new_item_map.score
             }
-            return newItemMap
+            return new_item_map
         })
 
-        return { error: null, data: { history, list: newMap, total, page, limit } }
+        return { error: null, data: { history, list: new_map, total, page, limit } }
     }
 
 }

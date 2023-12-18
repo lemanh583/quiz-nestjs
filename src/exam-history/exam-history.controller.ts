@@ -12,7 +12,7 @@ export class ExamHistoryController {
     @Get('/list/:slug')
     async endExam(@Param("slug") slug: string, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
         try {
-            let { error, data } = await this.examHistoryService.getListHistory(slug, user, query)
+            let { error, data } = await this.examHistoryService.getListHistory(slug, user.id, query)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }
@@ -30,7 +30,7 @@ export class ExamHistoryController {
     @Get('/get/:history_id')
     async detailHistory(@Param("history_id", ParseIntPipe) history_id: number, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
         try {
-            let { error, data } = await this.examHistoryService.detailHistory(history_id, user, query)
+            let { error, data } = await this.examHistoryService.detailHistory(history_id, user.id, query)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }

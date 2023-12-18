@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Post, Request, Body, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Post, Request, Body, HttpStatus, HttpException, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guards';
 import { Roles } from 'src/auth/decorator/role.decorator';
@@ -18,13 +18,32 @@ export class UserController {
     @Get()
     async getProfile(@CurrentUser() u: PayloadTokenInterface) {
         try {
-            let user = await this.userService.findOne({ where: { id: u.id } })
+            let user = await this.userService.findOne({ where: { id: u.id } });
             if (!user) {
                 throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
             }
             return plainToClass(UserDto, user, { excludeExtraneousValues: true })
         } catch (error) {
+            if (error instanceof HttpException) throw error
             throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Get('/transactions')
+    async detailHistory(@CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
+        try {
+            let { error, data } = await this.userService.listTransactionForUser(user.id, query)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
