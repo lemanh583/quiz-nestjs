@@ -298,7 +298,7 @@ export class ExamService {
     }
 
     async createExam(data: CreateExamDto, user: PayloadTokenInterface): Promise<ResponseServiceInterface<Partial<Exam>>> {
-        let { title, category_id, time_end, time_start, total_generate_question, lang_type } = data
+        let { title, category_id, time_end, time_start, lang_type } = data
         let category = await this.categoryRepository.findOne({ where: { id: category_id } })
         if (!category) {
             return { error: MessageError.ERROR_NOT_FOUND + 'category', data: null }
@@ -334,7 +334,7 @@ export class ExamService {
     }
 
     async updateExam(id: number, data: UpdateExamDto): Promise<ResponseServiceInterface<Partial<Exam>>> {
-        let { title, category_ids, time_end, time_start, total_generate_question, lang_type } = data
+        let { title, category_ids, time_end, time_start, lang_type } = data
         let exam = await this.findOne({ where: { id }, relations: { category_exams: true } })
         let exam_update: Partial<Exam> = {}
         if (!exam) {

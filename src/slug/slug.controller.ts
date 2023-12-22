@@ -20,20 +20,20 @@ export class SlugController {
         private readonly postService: PostService,
     ) { }
 
-    @Get('/test')
-    async test() {
-        try {
-            let slugDB = await this.slugService.test();
-            return {
-                code: HttpStatus.OK,
-                success: true,
-                data: slugDB
-            }
-        } catch (error) {
-            if (error instanceof HttpException) throw error
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
-    }
+    // @Get('/test')
+    // async test() {
+    //     try {
+    //         let slugDB = await this.slugService.test();
+    //         return {
+    //             code: HttpStatus.OK,
+    //             success: true,
+    //             data: slugDB
+    //         }
+    //     } catch (error) {
+    //         if (error instanceof HttpException) throw error
+    //         throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    //     }
+    // }
 
     @Get('/:slug')
     async getDataFromSlug(@Req() request: Request, @Param('slug') slug: string, body: any) {

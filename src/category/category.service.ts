@@ -79,7 +79,7 @@ export class CategoryService {
   }
 
   async updateCategory(id: number, data: UpdateCategoryDto): Promise<ResponseServiceInterface<CategoryDto>> {
-    let { title, type } = data
+    let { title, type, lang_type, hidden } = data
     let category = await this.findOne({ where: { id }, relations: ["slug"] })
     if (!category) {
       return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -98,6 +98,8 @@ export class CategoryService {
       }
     }
     if (type) category.type = type
+    if(lang_type) category.lang_type = lang_type
+    if(hidden != undefined) category.hidden = hidden
     await this.updateOne({ id: category.id }, category)
     return {
       error: null,

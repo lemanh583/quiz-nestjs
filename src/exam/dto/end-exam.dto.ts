@@ -1,12 +1,15 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, IsArray, ArrayNotEmpty, IsOptional, IsEnum, Min, Max, ArrayMinSize, ValidateNested, Validate, ValidationArguments, ValidatorConstraintInterface, ValidatorConstraint } from "class-validator"
 import { ExamLangType } from "src/common/enum/exam.enum";
 
 export class ElementExamEnd {
+    @ApiProperty()
     @IsInt()
     @Min(0)
     question_id: number
 
+    @ApiProperty()
     @IsInt()
     @Min(0)
     answer_id: number
@@ -23,6 +26,7 @@ export class ElementExamEnd {
 // }
 
 export class ExamEndDto {
+    @ApiProperty({ description: "Mảng câu hỏi và câu trả lời của user thi trắc nghiệm" })
     @IsArray()
     @ArrayNotEmpty()
     // @ArrayMinSize(3)

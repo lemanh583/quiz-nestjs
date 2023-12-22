@@ -19,6 +19,7 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules/
+      - ./uploads:/usr/src/app/uploads
     ports:
       - 3000:3000
     networks:

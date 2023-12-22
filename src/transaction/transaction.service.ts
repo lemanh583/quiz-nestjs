@@ -163,6 +163,13 @@ export class TransactionService {
         if (price != undefined && price >= 0) { 
             transaction.price = price
         }
+        if (package_id) {
+            let package_db = await this.packageRepository.findOne({ where: { id: package_id }})
+            if(!package_db) {
+                return { error: MessageError.ERROR_NOT_FOUND, data: null }
+            }
+            transaction.package = package_db
+        }
         await this.save(transaction)
         return { error: null, data: transaction }
     }

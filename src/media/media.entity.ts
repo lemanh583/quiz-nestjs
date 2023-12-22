@@ -21,4 +21,7 @@ export class Media extends BaseEntity {
 
     @Column({ type: "enum", enum: MediaType, default: null })
     ref_type: MediaType
+
+    @Column({ default: null })
+    local_path: string
 }

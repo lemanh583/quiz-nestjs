@@ -9,11 +9,13 @@ import { CurrentUser } from './decorator/user.decorator';
 import { PayloadTokenInterface } from 'src/common/interface';
 import { plainToClass } from 'class-transformer';
 import { UserDto } from 'src/user/dto';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
+    @ApiOperation({ summary: "sign up" })
     @Post('/sign-up')
     async signUp(@Body() body: SignUpDto): Promise<ResponseInterface<{ user: User, token: string }>> {
         try {
@@ -34,6 +36,7 @@ export class AuthController {
         }
     }
 
+    @ApiOperation({ summary: "sign in" })
     @Post('/sign-in')
     async signIn(@Body() body: SignInDto): Promise<ResponseInterface<{ user: UserDto, token: string }>> {
         try {
@@ -54,6 +57,7 @@ export class AuthController {
         }
     }
 
+    @ApiOperation({ summary: "get info from token" })
     @Get('/whoami')
     @UseGuards(JwtAuthGuard)
     whoAmI(@CurrentUser() user: PayloadTokenInterface) {

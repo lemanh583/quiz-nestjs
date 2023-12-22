@@ -6,6 +6,7 @@ import { ResponseServiceInterface } from 'src/common/interface';
 import { CreateMediaDto } from './dto';
 import { BaseListFilterDto } from 'src/common/base/base.list';
 import { MessageError } from 'src/common/enum/error.enum';
+import * as fs from 'fs';
 @Injectable()
 export class MediaService {
     constructor(@InjectRepository(Media) private readonly repository: Repository<Media>) { }
@@ -59,6 +60,7 @@ export class MediaService {
             record.name = file.filename
             record.ref_type = ref_type
             record.ref_id = ref_id
+            record.local_path = file.path
             return Object.assign(new Media(), record)
         })
         await this.repository.insert(records)
@@ -100,11 +102,12 @@ export class MediaService {
     }
 
     async deleteMedia(media_id: number): Promise<ResponseServiceInterface<any>> {
-        let post = await this.findOne({ where: { id: media_id } })
-        if (!post) {
+        let media = await this.findOne({ where: { id: media_id } })
+        if (!media) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
-        await this.repository.delete({ id: post.id })
+        await this.repository.delete({ id: media.id })
+        fs.unlinkSync(media.local_path)
         return { error: null, data: { message: "Done!" } }
     }
 
