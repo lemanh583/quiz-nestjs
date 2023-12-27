@@ -96,9 +96,9 @@ export class UserService {
                 }
             },
             relations: {
-                transactions: {
-                    category: true
-                }
+                // transactions: {
+                    // category: true
+                // }
             }
         })
         if (!user) {
@@ -116,7 +116,7 @@ export class UserService {
         let [list, total] = await this.transactionRepository.findAndCount({
             where: { user_id: user.id },
             relations: {
-                category: true
+                // category: true
             }
         })
         return { error: null, data: { list, total, page, limit } }

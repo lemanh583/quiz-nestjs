@@ -59,7 +59,7 @@ export class ExamHistoryService {
 
     async getListHistory(slug: string, user_id: number, query: any): Promise<ResponseServiceInterface<any>> {
         let { page, limit } = Helper.transformQueryList(query)
-        let exam = await this.examRepository.findOne({ where: { slug: { slug } } })
+        let exam = await this.examRepository.findOne({ where: { slug } })
         if (!exam || exam.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }

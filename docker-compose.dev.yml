@@ -5,6 +5,8 @@ services:
     image: mysql:latest
     volumes:
       - data:/var/lib/mysql
+      - ./init.sql:/data/application/init.sql
+    command: --init-file /data/application/init.sql
     ports:
       - 3306:3306
     environment:

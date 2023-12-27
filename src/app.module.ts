@@ -29,11 +29,12 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { Package } from './package/package.entity';
 import { Transaction } from './transaction/transaction.entity';
-import { CategoryExam } from './category-exam/category-exam.entity';
 import { SeederModule } from './seeder/seeder.module';
 import { TransactionModule } from './transaction/transaction.module';
-import { PackageController } from './package/package.controller';
 import { PackageModule } from './package/package.module';
+import { CourseModule } from './course/course.module';
+import { Course } from './course/course.entitty';
+import { CourseExam } from './course-exam/course-exam.entity';
 
 @Module({
   imports: [
@@ -61,7 +62,8 @@ import { PackageModule } from './package/package.module';
         ExamQuestion,
         Package,
         Transaction,
-        CategoryExam
+        Course,
+        CourseExam
       ],
       synchronize: true,
       // logging: true
@@ -86,6 +88,7 @@ import { PackageModule } from './package/package.module';
     SeederModule,
     TransactionModule,
     PackageModule,
+    CourseModule,
   ],
 })
 export class AppModule { }

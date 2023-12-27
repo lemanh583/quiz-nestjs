@@ -78,7 +78,7 @@ export class TransactionService {
                     price,
                     package: package_db,
                     user,
-                    category
+                    // category
                 })
             })
         ])
@@ -107,10 +107,10 @@ export class TransactionService {
                     id: true,
                     email: true,
                 },
-                category: {
-                    id: true,
-                    title: true
-                },
+                // category: {
+                //     id: true,
+                //     title: true
+                // },
                 package: {
                     id: true,
                     title: true
@@ -121,7 +121,7 @@ export class TransactionService {
             skip: (page - 1) * limit,
             relations: {
                 user: true,
-                category: true,
+                // category: true,
                 package: true
             }
         }
@@ -132,9 +132,9 @@ export class TransactionService {
             }
         }
         if (payload?.filter?.category_ids) {
-            where.category = {
-                id: In(payload.filter.category_ids)
-            }
+            // where.category = {
+            //     id: In(payload.filter.category_ids)
+            // }
         }
         if (Object.keys(where).length > 0) {
             condition.where = where
@@ -157,7 +157,7 @@ export class TransactionService {
         if (category_id) {
             let category = await this.categoryRepository.findOne({ where: { id: category_id }})
             if(category) {
-                transaction.category = category
+                // transaction.category = category
             }
         }
         if (price != undefined && price >= 0) { 

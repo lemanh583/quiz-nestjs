@@ -1,4 +1,4 @@
 export enum CategoryType {
-    exam = "exam",
+    course = "course",
     post = "post",
 }

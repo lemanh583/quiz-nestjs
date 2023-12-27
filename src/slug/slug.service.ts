@@ -59,9 +59,9 @@ export class SlugService {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
         let response: any
-        if (slugDB.type == SlugType.exam) {
+        // if (slugDB.type == SlugType.exam) {
             // let { error, data } = await this.examService.handleSlug(slug, query)
-        }
+        // }
 
         return { error: null, data: response } 
     }

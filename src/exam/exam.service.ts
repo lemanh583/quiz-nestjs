@@ -17,12 +17,10 @@ import { Slug } from 'src/slug/slug.entity';
 import { ExamType } from 'src/common/enum/exam.enum';
 import * as fs from "fs"
 import { v4 as uuidv4 } from 'uuid';
-import { CATEGORY_DEFAULT_GENERATE_TEXT } from 'src/common/constants';
 import { ExamHistory } from 'src/exam-history/exam-history.entity';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { User } from 'src/user/user.entity';
 import { Category } from 'src/category/category.entity';
-import { CategoryExam } from 'src/category-exam/category-exam.entity';
 import { Media } from 'src/media/media.entity';
 import { MediaType } from 'src/common/enum/media.enum';
 
@@ -43,8 +41,8 @@ export class ExamService {
         private readonly slugRepository: Repository<Slug>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectRepository(CategoryExam)
-        private readonly categoryExamRepository: Repository<CategoryExam>,
+        // @InjectRepository(CategoryExam)
+        // private readonly categoryExamRepository: Repository<CategoryExam>,
         @InjectRepository(Media)
         private readonly mediaRepository: Repository<Media>,
         private dataSource: DataSource
@@ -124,13 +122,13 @@ export class ExamService {
             let generateText = 'exam-' + uuidv4()
             let slugDB = await queryRunner.manager.save(Slug, {
                 slug: generateText,
-                type: SlugType.exam,
+                // type: SlugType.exam,
             })
             // let category = await this.categoryRepository.findOne({ where: { title: CATEGORY_DEFAULT_GENERATE_TEXT } })
             let newExam: Partial<Exam> = {
                 title: generateText,
                 // category,
-                slug: slugDB,
+                // slug: slugDB,
                 // total_generate_question: totalQuestions,
                 lang_type,
                 user_id: user.id,
@@ -146,11 +144,11 @@ export class ExamService {
                     }
                     let getExams = await this.find({
                         where: {
-                            category_exams: {
-                                category: {
-                                    id: category.category_id,
-                                }
-                            },
+                            // category_exams: {
+                            //     // category: {
+                            //     //     id: category.category_id,
+                            //     // }
+                            // },
                             type: ExamType.import
                         },
                         select: ["id"]
@@ -163,11 +161,11 @@ export class ExamService {
                         .take(category.take)
                         .getMany()
 
-                    await queryRunner.manager.save(CategoryExam, {
-                        category: checkCategoryDB,
-                        exam: examDB,
-                        total: getRandomQuestion.length
-                    })
+                    // await queryRunner.manager.save(CategoryExam, {
+                    //     category: checkCategoryDB,
+                    //     exam: examDB,
+                    //     total: getRandomQuestion.length
+                    // })
                     randomQuestions.push(...getRandomQuestion)
                 })
             )
@@ -224,24 +222,24 @@ export class ExamService {
                     sheets.map(async (worksheet: ExcelJS.Worksheet, index: number) => {
                         let slugText = Helper.removeAccents(worksheet.name, true)
                         let checkSlug = await this.slugRepository.count({ where: { slug: slugText } })
-                        let slugDB = await queryRunner.manager.save(Slug, {
-                            slug: checkSlug != 0 ? slugText + "d" : slugText,
-                            type: SlugType.exam,
-                        })
+                        // let slugDB = await queryRunner.manager.save(Slug, {
+                        //     slug: checkSlug != 0 ? slugText + "d" : slugText,
+                        //     type: SlugType.exam,
+                        // })
                         let newExam: Partial<Exam> = {
                             title: worksheet.name,
                             // category,
                             lang_type,
-                            slug: slugDB,
+                            // slug: slugDB,
                             type: ExamType.user,
                             user_id: user.id
                         }
                         let examDB = await queryRunner.manager.save(Exam, newExam)
-                        await queryRunner.manager.save(CategoryExam, {
-                            category: category,
-                            exam: examDB,
-                            total: worksheet.rowCount
-                        })
+                        // await queryRunner.manager.save(CategoryExam, {
+                        //     category: category,
+                        //     exam: examDB,
+                        //     total: worksheet.rowCount
+                        // })
                         worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
                             if (rowNumber == 1) return
                             promises.push(this.handleInsertQuestionAndAnswer(queryRunner, examDB, row, rowNumber))
@@ -309,11 +307,11 @@ export class ExamService {
         if (!!checkSlug) {
             return { error: MessageError.ERROR_EXISTS, data: null }
         }
-        let newSlug = await this.slugRepository.save(Object.assign(new Slug(), { slug, type: SlugType.exam }))
+        // let newSlug = await this.slugRepository.save(Object.assign(new Slug(), { slug, type: SlugType.exam }))
         let dataCreate: Partial<Exam> = {
             title,
             // category,
-            slug: newSlug,
+            // slug: newSlug,
             // total_generate_question,
             lang_type,
             user_id: user.id
@@ -323,10 +321,10 @@ export class ExamService {
             dataCreate.time_end = time_end
         }
         let newExam = await this.save(dataCreate)
-        await this.categoryExamRepository.save({
-            category: category,
-            exam: newExam
-        })
+        // await this.categoryExamRepository.save({
+            // category: category,
+            // exam: newExam
+        // })
         return {
             error: null,
             data: newExam
@@ -334,59 +332,60 @@ export class ExamService {
     }
 
     async updateExam(id: number, data: UpdateExamDto): Promise<ResponseServiceInterface<Partial<Exam>>> {
-        let { title, category_ids, time_end, time_start, lang_type } = data
-        let exam = await this.findOne({ where: { id }, relations: { category_exams: true } })
-        let exam_update: Partial<Exam> = {}
-        if (!exam) {
-            return { error: MessageError.ERROR_NOT_FOUND, data: null }
-        }
-        if (category_ids?.length) {
-            let remove_exam_category_ids = exam.category_exams.filter((category_exam) => {
-                if (!category_ids.includes(category_exam.category_id)) {
-                    return category_exam
-                }
-            }).map(i => i.id)
+        return
+        // let { title, category_ids, time_end, time_start, lang_type } = data
+        // let exam = await this.findOne({ where: { id }, relations: { category_exams: true } })
+        // let exam_update: Partial<Exam> = {}
+        // if (!exam) {
+        //     return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        // }
+        // if (category_ids?.length) {
+        //     let remove_exam_category_ids = exam.category_exams.filter((category_exam) => {
+        //         // if (!category_ids.includes(category_exam.category_id)) {
+        //         //     return category_exam
+        //         // }
+        //     }).map(i => i.id)
 
-            await Promise.all(
-                category_ids.map(async (category_id: number) => {
-                    let category = await this.categoryRepository.findOne({ where: { id: category_id } })
-                    if (!category) {
-                        throw new Error(MessageError.ERROR_NOT_FOUND + 'category')
-                    }
-                    let find = exam.category_exams.find((item) => item.category_id == category_id)
-                    if (find) return
-                    await this.categoryExamRepository.save({
-                        category: category,
-                        exam: exam
-                    })
-                })
-            )
-            this.categoryExamRepository.delete({ id: In(remove_exam_category_ids) })
-        }
-        if (title) {
-            let slug_update = Helper.removeAccents(title, false)
-            let slug_db = Helper.removeAccents(exam.title, false)
-            if (slug_update != slug_db) {
-                slug_update += "-" + Date.now()
-                let checkSlug = await this.slugRepository.count({ where: { slug: slug_update } })
-                if (!!checkSlug) {
-                    return { error: MessageError.ERROR_EXISTS, data: null }
-                }
-                exam_update.slug = await this.slugRepository.save({ id: exam.slug_id, slug: slug_update })
-                exam_update.title = title
-            }
-        }
-        if (time_end && time_start) {
-            exam_update.time_start = time_start
-            exam_update.time_end = time_end
-        }
-        exam_update.lang_type = lang_type
-        // exam_update.total_generate_question = total_generate_question
-        let update = await this.updateOne({ id: exam.id }, exam_update, { relations: ["slug", "category_exams"] })
-        return {
-            error: null,
-            data: update
-        }
+        //     await Promise.all(
+        //         category_ids.map(async (category_id: number) => {
+        //             let category = await this.categoryRepository.findOne({ where: { id: category_id } })
+        //             if (!category) {
+        //                 throw new Error(MessageError.ERROR_NOT_FOUND + 'category')
+        //             }
+        //             // let find = exam.category_exams.find((item) => item.category_id == category_id)
+        //             // if (find) return
+        //             await this.categoryExamRepository.save({
+        //                 category: category,
+        //                 exam: exam
+        //             })
+        //         })
+        //     )
+        //     this.categoryExamRepository.delete({ id: In(remove_exam_category_ids) })
+        // }
+        // if (title) {
+        //     let slug_update = Helper.removeAccents(title, false)
+        //     let slug_db = Helper.removeAccents(exam.title, false)
+        //     if (slug_update != slug_db) {
+        //         slug_update += "-" + Date.now()
+        //         let checkSlug = await this.slugRepository.count({ where: { slug: slug_update } })
+        //         if (!!checkSlug) {
+        //             return { error: MessageError.ERROR_EXISTS, data: null }
+        //         }
+        //         // exam_update.slug = await this.slugRepository.save({ id: exam.slug_id, slug: slug_update })
+        //         exam_update.title = title
+        //     }
+        // }
+        // if (time_end && time_start) {
+        //     exam_update.time_start = time_start
+        //     exam_update.time_end = time_end
+        // }
+        // exam_update.lang_type = lang_type
+        // // exam_update.total_generate_question = total_generate_question
+        // let update = await this.updateOne({ id: exam.id }, exam_update, { relations: ["slug", "category_exams"] })
+        // return {
+        //     error: null,
+        //     data: update
+        // }
     }
 
     async getListExam(filter: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
@@ -439,7 +438,7 @@ export class ExamService {
 
     async startExam(slug: string, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
         let { page = 1, limit = 60 } = query
-        let exam = await this.findOne({ where: { slug: { slug } } })
+        let exam = await this.findOne({ where: { slug } })
         if (!exam || exam?.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -537,7 +536,7 @@ export class ExamService {
 
     async endExam(slug: string, user: PayloadTokenInterface, body: ExamEndDto): Promise<ResponseServiceInterface<any>> {
         let { form } = body
-        let exam = await this.findOne({ where: { slug: { slug } } })
+        let exam = await this.findOne({ where:{ slug } })
         if (!exam) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -616,7 +615,7 @@ export class ExamService {
 
     async getExam(slug: string): Promise<ResponseServiceInterface<any>> {
         // let { page = 1, limit = 10 } = query
-        let exam = await this.findOne({ where: { slug: { slug } } })
+        let exam = await this.findOne({ where: { slug } } )
         if (!exam || exam.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -660,7 +659,7 @@ export class ExamService {
 
     async usersInExam(slug: string, body: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
         let { page = 1, limit = 20, sort } = body
-        let exam = await this.findOne({ where: { slug: { slug } } })
+        let exam = await this.findOne({ where: { slug } })
         if (!exam) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
