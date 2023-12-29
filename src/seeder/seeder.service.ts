@@ -34,14 +34,16 @@ export class SeederService implements OnModuleInit {
             "Thống kê",
             "Bảo hiểm xã hội",
             "Ngân hàng nhà nước",
-            "Tiếng Anh"
+            "Tiếng Anh",
+            "Tin tức"
         ]
     }
 
     async onModuleInit() {
         if (!eval(process.env.SEED)) return
+        console.log('Seeding started')
         await this.seed();
-        console.log('Seeding completed.');
+        console.log('Seeding completed.'); 
     }
 
     async seed() {
@@ -188,7 +190,7 @@ export class SeederService implements OnModuleInit {
             this.list_topic.map(async (topic, index) => {
                 await this.topicService.createTopic({
                     title: topic,
-                    type: TopicType.exam,
+                    type: topic == 'Tin tức'? TopicType.post : TopicType.exam,
                     lang_type: index == this.list_topic.length - 1 ? ExamLangType.en : ExamLangType.vi
                 }).catch(e => e)
             })

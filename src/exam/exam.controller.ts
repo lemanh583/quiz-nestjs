@@ -1,4 +1,4 @@
-import { Response, Body, Controller, HttpException, HttpStatus, Param, Post, UploadedFile, UseGuards, UseInterceptors, ParseIntPipe, Get } from '@nestjs/common';
+import { Response, Body, Controller, HttpException, HttpStatus, Param, Post, UploadedFile, UseGuards, UseInterceptors, ParseIntPipe, Get, Query } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BaseListFilterDto } from 'src/common/base/base.list';
@@ -43,9 +43,9 @@ export class ExamController {
 
 
     @Get('/auto-generate/:slug')
-    async autoGenerate(@Param("slug") slug: string, @CurrentUser() user: PayloadTokenInterface): Promise<ResponseInterface<Exam>> {
+    async autoGenerateFromSlug(@Param("slug") slug: string, @CurrentUser() user: PayloadTokenInterface): Promise<ResponseInterface<Exam>> {
         try {
-            let topic = await this.topicService.findOne({ where: { slug: { slug }}})
+            let topic = await this.topicService.findOne({ where: { slug: { slug } } })
             if (!topic) {
                 throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
             }
@@ -86,7 +86,6 @@ export class ExamController {
         }
     }
 
-
     @Post('/:exam_id/end')
     async endExam(@Body() body: ExamEndDto, @Param("exam_id", ParseIntPipe) exam_id: number, @CurrentUser() user: PayloadTokenInterface): Promise<any> {
         try {
@@ -109,11 +108,41 @@ export class ExamController {
         }
     }
 
-
     @Post('/update-log/:exam_id')
     async updateLogExam(@Param("exam_id", ParseIntPipe) exam_id: number, @Body() body: UpdateLogExamDto, @CurrentUser() user: PayloadTokenInterface): Promise<any> {
         try {
             let { error, data } = await this.examService.updateLog(exam_id, body, user)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Get('/get-exam-for-user/:slug')
+    async getExamForUserWithSlug(@Param("slug") slug: string, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<ResponseInterface<Exam>> {
+        try {
+            let topic = await this.topicService.findOne({ where: { slug: { slug } } })
+            if (!topic) {
+                throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
+            }
+            let payload: BaseListFilterDto<any, any> = {}
+            if (query.limit) {
+                payload.limit = Number(query.limit) && Number(query.limit) > 0 ? Number(query.limit) : 0
+            }
+            if (query.page) {
+                payload.page = Number(query.page) && Number(query.limit) > 0 ? Number(query.page) : 1
+            }
+            payload.filter.user_ids = [user.id]
+            payload.filter.topic_ids = [topic.id]
+            let { error, data } = await this.examService.getListExam(payload)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }

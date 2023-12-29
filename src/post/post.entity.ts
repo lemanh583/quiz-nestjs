@@ -11,12 +11,12 @@ export class Post extends BaseEntity {
     title: string
 
     @Column()
-    descriptions: string
+    description: string
 
     @Column()
     content: string
 
-    @Column()
+    @Column({ default: null })
     img: string
 
     @Column({ default: 0 })

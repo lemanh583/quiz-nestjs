@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsInt, IsOptional, IsString } from "class-validator"
 
-export class FilterDto {
+export class FilterExamDto {
     @ApiProperty({})
     @IsOptional()
     @IsString()
@@ -16,4 +16,14 @@ export class FilterDto {
     @IsOptional()
     @IsInt({ each: true })
     category_ids?: number[]
+
+    @ApiProperty({ description: "Lọc theo mảng users" })
+    @IsOptional()
+    @IsInt({ each: true })
+    user_ids?: number[]
+
+    @ApiProperty({ description: "Lọc theo mảng users" })
+    @IsOptional()
+    @IsInt({ each: true })
+    topic_ids?: number[]
 }

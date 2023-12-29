@@ -65,6 +65,7 @@ export class TopicService {
     }
 
     async isAccessTopic(topic: Topic, user_decode: PayloadTokenInterface): Promise<boolean> {
+        if(!user_decode) return false
         if (!topic.id) return false
         if (user_decode.role == UserRole.ADMIN) return true
         let transaction = await this.transactionRepository.count({

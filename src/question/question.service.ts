@@ -8,7 +8,7 @@ import { MessageError } from 'src/common/enum/error.enum';
 import { Answer } from 'src/answer/answer.entity';
 import { AddMultipleQuestionDto, CreateQuestionDto, UpdateQuestionDto } from './dto';
 import { BaseListFilterDto } from 'src/common/base/base.list';
-import { FilterDto } from 'src/exam/dto';
+import { FilterExamDto } from 'src/exam/dto';
 
 @Injectable()
 export class QuestionService {

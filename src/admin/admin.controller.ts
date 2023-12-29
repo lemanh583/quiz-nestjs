@@ -346,7 +346,6 @@ export class AdminController {
     @UsePipes(ValidateMultiFileSizePipe)
     async uploadFile(@UploadedFiles() files: Array<Express.Multer.File>, @Body() body: CreateMediaDto) {
         try {
-            return files.map(file => file.originalname.replace(/\.$/, ''))
             let { error, data } = await this.mediaService.saveMultipleMedia(files, body);
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
@@ -705,7 +704,7 @@ export class AdminController {
     }
 
     @Post('/post/list')
-    async listPost(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Exam>> {
+    async listPost(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<any>> {
         try {
             let { error, data } = await this.postService.listPost(body)
             if (error) {
@@ -731,7 +730,7 @@ export class AdminController {
      */
 
     @Post('/user/list')
-    async listUser(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Category>> {
+    async listUser(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<any>> {
         try {
             let { error, data } = await this.userService.listUser(body)
             if (error) {

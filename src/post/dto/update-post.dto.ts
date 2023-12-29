@@ -9,31 +9,36 @@ export class UpdatePostDto {
     @IsString()
     @Transform(({ value }) => value?.trim())
     @IsNotEmpty()
-    title: string;
+    title?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()
     @IsInt()
-    topic_id: number
+    topic_id?: number
 
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => value?.trim())
     @IsNotEmpty()
-    descriptions: string;
+    description?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => value?.trim())
     @IsNotEmpty()
-    content: string;
+    content?: string;
 
 
     @ApiProperty()
     @IsOptional()
     @IsArray()
     @IsInt({ each: true })
-    tag_ids: number[]
+    tag_ids?: number[]
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    img?: string
 }

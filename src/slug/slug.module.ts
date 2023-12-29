@@ -8,6 +8,7 @@ import { ExamModule } from 'src/exam/exam.module';
 import { JwtMiddleware } from 'src/common/middleware/jwt.middleware';
 import { TransactionModule } from 'src/transaction/transaction.module';
 import { PostModule } from 'src/post/post.module';
+import { TopicModule } from 'src/topic/topic.module';
 
 @Module({
     imports: [
@@ -15,7 +16,8 @@ import { PostModule } from 'src/post/post.module';
         CategoryModule,
         ExamModule,
         TransactionModule,
-        PostModule
+        PostModule,
+        TopicModule
     ],
     controllers: [SlugController],
     providers: [

@@ -1,8 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Transform } from "class-transformer";
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, Min, IsInt, IsArray } from "class-validator"
-import { ExamLangType, ExamType } from "src/common/enum/exam.enum";
-import { PostPosition } from "src/common/enum/post.enum";
+import { Transform } from "class-transformer";
+import { IsString, IsNotEmpty, IsOptional, IsInt, IsArray } from "class-validator"
 
 export class CreatePostDto {
     @ApiProperty()
@@ -19,7 +17,7 @@ export class CreatePostDto {
     @IsString()
     @Transform(({ value }) => value?.trim())
     @IsNotEmpty()
-    descriptions: string;
+    description: string;
 
     @ApiProperty()
     @IsString()
@@ -31,5 +29,10 @@ export class CreatePostDto {
     @IsOptional()
     @IsArray()
     @IsInt({ each: true })
-    tag_ids: number[]
+    tag_ids?: number[]
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    img?: string
 }

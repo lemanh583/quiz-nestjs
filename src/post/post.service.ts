@@ -75,7 +75,7 @@ export class PostService {
     }
 
     async createPost(body: CreatePostDto): Promise<ResponseServiceInterface<any>> {
-        let { title, descriptions, topic_id, content, tag_ids } = body;
+        let { title, description, topic_id, content, tag_ids, img } = body;
         let slug = Helper.removeAccents(title, true)
         let check_slug = await this.slugRepository.count({ where: { slug } })
         if (check_slug) {
@@ -87,22 +87,23 @@ export class PostService {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
         let tags = []
-        if (tag_ids.length > 0) {
+        if (tag_ids?.length > 0) {
             tags = await this.tagRepository.find({ where: { id: In(tag_ids) } })
         }
         let post = await this.save({
             title,
             slug: slug_db,
-            descriptions,
+            description,
             content,
             topic,
-            tags
+            tags,
+            img
         })
         return { error: null, data: post }
     }
 
     async updatePost(post_id: number, body: UpdatePostDto): Promise<ResponseServiceInterface<any>> {
-        let { title, descriptions, content, topic_id, tag_ids } = body
+        let { title, description, content, topic_id, tag_ids, img } = body
         let post = await this.findOne({ where: { id: post_id } })
         if (!post) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -124,12 +125,13 @@ export class PostService {
             }
             post_update.topic = topic
         }
-        if (tag_ids.length > 0) {
+        if (tag_ids?.length > 0) {
             let tags = await this.tagRepository.find({ where: { id: In(tag_ids) } })
             post_update.tags = tags
         }
-        if (descriptions) post_update.descriptions = descriptions
+        if (description) post_update.description = description
         if (content) post_update.content = content
+        if (img) post_update.img = img
         let update = await this.updateOne({ id: post.id }, post_update)
         return { error: null, data: update }
     }
