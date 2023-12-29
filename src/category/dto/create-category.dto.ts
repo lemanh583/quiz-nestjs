@@ -12,15 +12,15 @@ export class CreateCategoryDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty({
-        description: "Category cho bài thi thì là exam. Cho post thì là post",
-        enum: CategoryType,
-    })
-    @IsString()
-    @Transform(({ value }) => value?.trim())
-    @IsNotEmpty()
-    @IsEnum(CategoryType, { message: 'Invalid type' })
-    type: CategoryType;
+    // @ApiProperty({
+    //     description: "Category cho bài thi thì là exam. Cho post thì là post",
+    //     enum: CategoryType,
+    // })
+    // @IsString()
+    // @Transform(({ value }) => value?.trim())
+    // @IsNotEmpty()
+    // @IsEnum(CategoryType, { message: 'Invalid type' })
+    // type: CategoryType;
 
     @ApiProperty({
         required: false, 

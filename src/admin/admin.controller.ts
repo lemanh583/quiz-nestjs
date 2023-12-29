@@ -28,6 +28,8 @@ import { PostService } from 'src/post/post.service';
 import { CreatePostDto, UpdatePostDto } from 'src/post/dto';
 import { UserService } from 'src/user/user.service';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import { CreateTopicDto, UpdateTopicDto } from 'src/topic/dto';
+import { TopicService } from 'src/topic/topic.service';
 
 @ApiBearerAuth()
 @Controller('admin')
@@ -42,8 +44,74 @@ export class AdminController {
         private readonly transactionService: TransactionService,
         private readonly mediaService: MediaService,
         private readonly postService: PostService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly topicService: TopicService,
     ) { }
+    /**
+    * TOPIC SERVICE
+    * @param body 
+    * @returns 
+    */
+    @ApiOperation({ summary: "create topic" })
+    @Post('/topic/create')
+    async createTopic(@Body() body: CreateTopicDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.topicService.createTopic(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/topic/create', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @ApiOperation({ summary: "update topic" })
+    @Put('/topic/update/:id')
+    async updateTopic(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTopicDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.topicService.updateTopic(id, body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/topic/update/:id', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @ApiOperation({ summary: "list topic" })
+    @Post('/topic/list')
+    async listTopic(@Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.topicService.getListTopic(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/topic/list', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
 
     /**
      * CATEGORY SERVICE
@@ -245,10 +313,10 @@ export class AdminController {
     }
 
     @ApiOperation({ summary: "list user in exam" })
-    @Post('/exam/users/:slug')
-    async usersInExam(@Param("slug") slug: string, @Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Exam>> {
+    @Post('/exam/users/:exam_id')
+    async usersInExam(@Param("exam_id", ParseIntPipe) exam_id: number, @Body() body: BaseListFilterDto<any, any>): Promise<ResponseInterface<Exam>> {
         try {
-            let { error, data } = await this.examService.usersInExam(slug, body)
+            let { error, data } = await this.examService.usersInExam(exam_id, body)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }
@@ -278,6 +346,7 @@ export class AdminController {
     @UsePipes(ValidateMultiFileSizePipe)
     async uploadFile(@UploadedFiles() files: Array<Express.Multer.File>, @Body() body: CreateMediaDto) {
         try {
+            return files.map(file => file.originalname.replace(/\.$/, ''))
             let { error, data } = await this.mediaService.saveMultipleMedia(files, body);
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)

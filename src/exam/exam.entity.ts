@@ -9,6 +9,7 @@ import { ExamQuestion } from 'src/exam-question/exam-question.entity';
 import { ExamLangType, ExamType } from 'src/common/enum/exam.enum';
 import { User } from 'src/user/user.entity';
 import { CategoryExam } from 'src/category-exam/category-exam.entity';
+import { Topic } from 'src/topic/topic.entity';
 
 @Entity({ name: "exams" })
 export class Exam extends BaseEntity {
@@ -39,23 +40,18 @@ export class Exam extends BaseEntity {
     @Column({ type: "enum", enum: ExamLangType, default: ExamLangType.vi })
     lang_type: ExamLangType
 
-    // @Column({ default: 60 })
-    // total_generate_question: number
-
     @Column({ default: null })
     describe: string
 
-    @OneToOne(() => Slug, { onDelete: "CASCADE", nullable: true})
-    @JoinColumn({ name: "slug_id" })
-    slug: Slug
+    // @Column({ unique: true })
+    // slug: string
+    // @OneToOne(() => Slug, { onDelete: "CASCADE", nullable: true})
+    // @JoinColumn({ name: "slug_id" })
+    // slug: Slug
 
-    @Column({ name: "slug_id" })
-    slug_id: number
+    // @Column({ name: "slug_id" })
+    // slug_id: number
     
-    // @ManyToOne(() => Category, category => category.exams, { onDelete: "CASCADE", nullable: true })
-    // @JoinColumn({ name: 'category_id' })
-    // category: Category;
-
     @ManyToOne(() => User, user => user.exams, {cascade: true,  onDelete: "CASCADE", nullable: true })
     @JoinColumn({ name: 'user_id' })
     user: User;
@@ -63,8 +59,12 @@ export class Exam extends BaseEntity {
     @Column({ name: "user_id" })
     user_id: number
 
-    // @Column({ name: "category_id" })
-    // category_id: number
+    @ManyToOne(() => Topic, user => user.exams, {cascade: true,  onDelete: "CASCADE", nullable: true })
+    @JoinColumn({ name: 'topic_id' })
+    topic: Topic;
+
+    @Column({ name: "topic_id", default: null })
+    topic_id: number
 
     @OneToMany(() => ExamHistory, (e) => e.exam)
     exam_histories: ExamHistory[]

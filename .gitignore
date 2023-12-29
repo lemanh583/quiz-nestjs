@@ -37,3 +37,6 @@ lerna-debug.log*
 .env
 uploads
 docker-compose.yml
+crawler.congchucvns.json
+crawler.newcongchucvns.json
+category.topic.json

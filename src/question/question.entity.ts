@@ -1,6 +1,5 @@
-import { Entity, Column, OneToOne, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/base/base.entity';
-import { Exam } from 'src/exam/exam.entity';
 import { Answer } from 'src/answer/answer.entity';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { ExamQuestion } from 'src/exam-question/exam-question.entity';

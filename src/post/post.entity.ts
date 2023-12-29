@@ -1,8 +1,9 @@
-import { Entity, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, OneToOne, JoinColumn, ManyToOne, ManyToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/base/base.entity';
 import { Slug } from 'src/slug/slug.entity';
-import { Category } from 'src/category/category.entity';
 import { PostPosition } from 'src/common/enum/post.enum';
+import { Topic } from 'src/topic/topic.entity';
+import { Tag } from 'src/tag/tag.entity';
 
 @Entity({ name: "posts" })
 export class Post extends BaseEntity {
@@ -15,23 +16,29 @@ export class Post extends BaseEntity {
     @Column()
     content: string
 
+    @Column()
+    img: string
+
     @Column({ default: 0 })
     view: number
 
-    @Column({ type: "enum", enum: PostPosition, default: null })
-    position: PostPosition
+    // slug
+    @OneToOne(() => Slug, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "slug_id" })
+    slug: Slug
 
     @Column({ name: "slug_id" })
     slug_id: number
 
-    @Column({ name: "category_id" })
-    category_id: number
+    // topic
+    @ManyToOne(() => Topic, t => t.posts, { onDelete: "CASCADE" })
+    @JoinColumn({ name: 'topic_id' })
+    topic: Topic;
 
-    @OneToOne(() => Slug, { onDelete: "CASCADE"})
-    @JoinColumn({ name: "slug_id" })
-    slug: Slug
+    @Column({ name: "topic_id" })
+    topic_id: number
 
-    @ManyToOne(() => Category, category => category.posts, { onDelete: "CASCADE"})
-    @JoinColumn({ name: 'category_id' })
-    category: Category;
+    // tag
+    @ManyToMany(() => Tag, t => t.posts)
+    tags: Tag[];
 }

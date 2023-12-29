@@ -1,5 +1,4 @@
 export enum SlugType {
-    category = 'category',
+    topic = 'topic',
     post = 'post',
-    exam = 'exam'
 }

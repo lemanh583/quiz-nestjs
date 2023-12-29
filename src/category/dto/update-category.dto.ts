@@ -13,13 +13,13 @@ export class UpdateCategoryDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty({ description: "category type", required: false, enum: CategoryType })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => value?.trim())
-    @IsNotEmpty()
-    @IsEnum(CategoryType, { message: 'Invalid type' })
-    type: CategoryType;
+    // @ApiProperty({ description: "category type", required: false, enum: CategoryType })
+    // @IsOptional()
+    // @IsString()
+    // @Transform(({ value }) => value?.trim())
+    // @IsNotEmpty()
+    // @IsEnum(CategoryType, { message: 'Invalid type' })
+    // type: CategoryType;
 
 
     @ApiProperty({ description: "lang type", required: false, enum: ExamLangType })

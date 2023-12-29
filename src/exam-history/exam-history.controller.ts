@@ -9,10 +9,10 @@ import { PayloadTokenInterface } from 'src/common/interface';
 export class ExamHistoryController {
     constructor(private readonly examHistoryService: ExamHistoryService) { }
 
-    @Get('/list/:slug')
-    async endExam(@Param("slug") slug: string, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
+    @Get('/list/:exam_id')
+    async endExam(@Param("exam_id", ParseIntPipe) exam_id: number, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
         try {
-            let { error, data } = await this.examHistoryService.getListHistory(slug, user.id, query)
+            let { error, data } = await this.examHistoryService.getListHistory(exam_id, user.id, query)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }

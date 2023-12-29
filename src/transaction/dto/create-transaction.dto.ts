@@ -17,5 +17,5 @@ export class CreateTransactionDto {
     @ApiProperty()
     @IsArray()
     @IsInt({ each: true })
-    category_ids: number[];
+    topic_ids: number[];
 }

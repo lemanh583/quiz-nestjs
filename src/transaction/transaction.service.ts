@@ -9,6 +9,7 @@ import { MessageError } from 'src/common/enum/error.enum';
 import { Category } from 'src/category/category.entity';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto';
 import { BaseListFilterDto } from 'src/common/base/base.list';
+import { Topic } from 'src/topic/topic.entity';
 
 @Injectable()
 export class TransactionService {
@@ -19,8 +20,8 @@ export class TransactionService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(Package)
         private readonly packageRepository: Repository<Package>,
-        @InjectRepository(Category)
-        private readonly categoryRepository: Repository<Category>,
+        @InjectRepository(Topic)
+        private readonly topicRepository: Repository<Topic>,
     ) { }
 
     async findOne(condition: FindOneOptions<Transaction>): Promise<Transaction> {
@@ -62,7 +63,7 @@ export class TransactionService {
     }
 
     async createTransaction(body: CreateTransactionDto): Promise<ResponseServiceInterface<any>> {
-        let { user_id, price = 0, category_ids, package_id } = body
+        let { user_id, price = 0, topic_ids, package_id } = body
         let [user, package_db] = await Promise.all([
             this.userRepository.findOne({ where: { id: user_id } }),
             this.packageRepository.findOne({ where: { id: package_id } }),
@@ -71,14 +72,14 @@ export class TransactionService {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
         await Promise.all([
-            category_ids.map(async (category_id: number) => {
-                let category = await this.categoryRepository.findOne({ where: { id: category_id } })
-                if (!category) return
+            topic_ids.map(async (topic_id: number) => {
+                let topic = await this.topicRepository.findOne({ where: { id: topic_id } })
+                if (!topic) return
                 await this.save({
                     price,
                     package: package_db,
                     user,
-                    category
+                    topic
                 })
             })
         ])
@@ -107,7 +108,7 @@ export class TransactionService {
                     id: true,
                     email: true,
                 },
-                category: {
+                topic: {
                     id: true,
                     title: true
                 },
@@ -121,7 +122,7 @@ export class TransactionService {
             skip: (page - 1) * limit,
             relations: {
                 user: true,
-                category: true,
+                topic: true,
                 package: true
             }
         }
@@ -131,9 +132,9 @@ export class TransactionService {
                 email: payload.search
             }
         }
-        if (payload?.filter?.category_ids) {
-            where.category = {
-                id: In(payload.filter.category_ids)
+        if (payload?.filter?.topic_ids) {
+            where.topic = {
+                id: In(payload.filter.topic_ids)
             }
         }
         if (Object.keys(where).length > 0) {
@@ -155,9 +156,9 @@ export class TransactionService {
             }
         }
         if (category_id) {
-            let category = await this.categoryRepository.findOne({ where: { id: category_id }})
+            let category = await this.topicRepository.findOne({ where: { id: category_id }})
             if(category) {
-                transaction.category = category
+                transaction.topic = category
             }
         }
         if (price != undefined && price >= 0) { 

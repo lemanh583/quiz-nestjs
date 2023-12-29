@@ -49,4 +49,13 @@ export class Helper {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
   }
 
+  static getRandomElements(array: any[], numberOfElements: number) {
+    // Lấy số lượng phần tử ngẫu nhiên không trùng lặp từ mảng
+    const shuffledArray = array.slice().sort(() => Math.random() - 0.5);
+    
+    // Chọn số lượng phần tử mong muốn
+    return shuffledArray.slice(0, numberOfElements);
+  }
+
+
 }

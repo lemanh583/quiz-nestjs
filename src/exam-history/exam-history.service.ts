@@ -57,9 +57,9 @@ export class ExamHistoryService {
         return this.repository.count(condition)
     }
 
-    async getListHistory(slug: string, user_id: number, query: any): Promise<ResponseServiceInterface<any>> {
+    async getListHistory(id: number, user_id: number, query: any): Promise<ResponseServiceInterface<any>> {
         let { page, limit } = Helper.transformQueryList(query)
-        let exam = await this.examRepository.findOne({ where: { slug: { slug } } })
+        let exam = await this.examRepository.findOne({ where: { id } })
         if (!exam || exam.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -121,8 +121,18 @@ export class ExamHistoryService {
             }
             return new_item_map
         })
-
-        return { error: null, data: { history, list: new_map, total, page, limit } }
+        return {
+            error: null, data: {
+                history: {
+                    ...history,
+                    total_minute_work: Helper.calculateTimeWorkExam(history.start_time, history.end_time)
+                },
+                list: new_map,
+                total,
+                page,
+                limit
+            }
+        }
     }
 
 }

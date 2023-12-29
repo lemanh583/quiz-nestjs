@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, Min, IsInt } from "class-validator"
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, Min, IsInt, IsArray } from "class-validator"
 import { PostPosition } from "src/common/enum/post.enum";
 
 export class UpdatePostDto {
@@ -14,7 +14,7 @@ export class UpdatePostDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsInt()
-    category_id: number
+    topic_id: number
 
     @ApiProperty({ required: false })
     @IsOptional()
@@ -23,16 +23,17 @@ export class UpdatePostDto {
     @IsNotEmpty()
     descriptions: string;
 
-    @ApiProperty({ required: false, enum: PostPosition })
-    @IsOptional()
-    @Transform(({ value }) => value?.trim())
-    @IsEnum(PostPosition, { message: 'Invalid position' })
-    position?: PostPosition;
-
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => value?.trim())
     @IsNotEmpty()
     content: string;
+
+
+    @ApiProperty()
+    @IsOptional()
+    @IsArray()
+    @IsInt({ each: true })
+    tag_ids: number[]
 }

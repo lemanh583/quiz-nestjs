@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exam } from './exam.entity';
 import { ExamController } from './exam.controller';
 import { MulterModule } from '@nestjs/platform-express';
-import { UploadMiddleware } from 'src/middleware/upload.middleware';
+import { UploadMiddleware } from 'src/common/middleware/upload.middleware';
 import { SlugModule } from 'src/slug/slug.module';
 import { CategoryModule } from 'src/category/category.module';
 import { Question } from 'src/question/question.entity';
@@ -21,6 +21,9 @@ import { Slug } from 'src/slug/slug.entity';
 import { User } from 'src/user/user.entity';
 import { CategoryExam } from 'src/category-exam/category-exam.entity';
 import { Media } from 'src/media/media.entity';
+import { Topic } from 'src/topic/topic.entity';
+import { TopicService } from 'src/topic/topic.service';
+import { TopicModule } from 'src/topic/topic.module';
 
 @Module({
   imports: [
@@ -33,8 +36,13 @@ import { Media } from 'src/media/media.entity';
       Slug,
       User,
       CategoryExam,
-      Media
-    ])
+      Media,
+      Topic,
+      Question,
+      Answer,
+    ]),
+    TopicModule,
+    ExamHistoryModule
   ],
   controllers: [
     ExamController

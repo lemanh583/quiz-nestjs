@@ -44,44 +44,44 @@ export class SlugController {
                 throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
             }
             let rs: any
-            switch (slug_db.type) {
-                case SlugType.category:
-                    console.log(!user?.id)
-                    if (!user?.id) {
-                        rs = { list: []}
-                        break;
-                    }
-                    let [transactionCategory, category] = await Promise.all([
-                        this.transactionService.find({ where: { user_id: user.id } }),
-                        this.categoryService.findOne({ where: { slug_id: slug_db.id } })
-                    ])
-                    let category_ids = transactionCategory.map(item => item.category_id)
-                    if(!category_ids.includes(category.id)) return
-                    if (category.type == CategoryType.exam) {
-                        if(!body) body = {}
-                        if(!body?.filter) body.filter = {}
-                        body.filter.category_ids = [category.id]
-                        let { data } = await this.examService.getListExam(body)
-                        rs = data
-                    }
+            // switch (slug_db.type) {
+            //     case SlugType.category:
+            //         console.log(!user?.id)
+            //         if (!user?.id) {
+            //             rs = { list: []}
+            //             break;
+            //         }
+            //         let [transactionCategory, category] = await Promise.all([
+            //             this.transactionService.find({ where: { user_id: user.id } }),
+            //             this.categoryService.findOne({ where: { slug_id: slug_db.id } })
+            //         ])
+            //         let category_ids = transactionCategory.map(item => item.category_id)
+            //         if(!category_ids.includes(category.id)) return
+            //         if (category.type == CategoryType.exam) {
+            //             if(!body) body = {}
+            //             if(!body?.filter) body.filter = {}
+            //             body.filter.category_ids = [category.id]
+            //             let { data } = await this.examService.getListExam(body)
+            //             rs = data
+            //         }
 
-                    if (category.type == CategoryType.post) {
-                        let { data } = await this.postService.listPost(body)
-                        rs = data
-                    }
-                    break;
-                case SlugType.exam:
-                    let rs_get_exam = await this.examService.getExam(slug)
-                    rs = rs_get_exam.data
-                    break;
-                case SlugType.post:
-                    let { data } = await this.postService.getPost(slug)
-                    rs = data
-                    break;
+            //         if (category.type == CategoryType.post) {
+            //             let { data } = await this.postService.listPost(body)
+            //             rs = data
+            //         }
+            //         break;
+            //     case SlugType.exam:
+            //         let rs_get_exam = await this.examService.getExam(slug)
+            //         rs = rs_get_exam.data
+            //         break;
+            //     case SlugType.post:
+            //         let { data } = await this.postService.getPost(slug)
+            //         rs = data
+            //         break;
 
-                default:
-                    break;
-            }
+            //     default:
+            //         break;
+            // }
             return {
                 code: HttpStatus.OK,
                 success: true,

@@ -97,7 +97,7 @@ export class UserService {
             },
             relations: {
                 transactions: {
-                    category: true
+                    topic: true
                 }
             }
         })
@@ -116,7 +116,7 @@ export class UserService {
         let [list, total] = await this.transactionRepository.findAndCount({
             where: { user_id: user.id },
             relations: {
-                category: true
+                topic: true
             }
         })
         return { error: null, data: { list, total, page, limit } }

@@ -1,14 +1,12 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './category.entity';
-import { FindManyOptions, FindOneOptions, FindOptionsOrder, FindOptionsWhere, Like, Not, Repository, FindOptionsRelations } from 'typeorm';
-import { SlugService } from 'src/slug/slug.service';
-import { SlugType } from 'src/common/enum/slug.enum';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, Like, Repository, In } from 'typeorm';
 import { Helper } from 'src/common/helper';
 import { ResponseServiceInterface } from 'src/common/interface';
 import { CategoryDto, CreateCategoryDbDto, CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { MessageError } from 'src/common/enum/error.enum';
-import { BaseListFilterDto, TestParam, defaultParamList } from 'src/common/base/base.list';
+import { BaseListFilterDto } from 'src/common/base/base.list';
 import { Slug } from 'src/slug/slug.entity';
 
 @Injectable()
@@ -27,7 +25,7 @@ export class CategoryService {
     return this.repository.findOne({ where: condition })
   }
 
-  async save(data: CreateCategoryDbDto): Promise<Category> {
+  async save(data: Partial<Category>): Promise<Category> {
     const entity = Object.assign(new Category(), data);
     return this.repository.save(entity);
   }
@@ -61,43 +59,37 @@ export class CategoryService {
   }
 
   async createCategory(data: CreateCategoryDto): Promise<ResponseServiceInterface<CategoryDto>> {
-    let { title, type, lang_type } = data
-    let withTime = false
-    let slug = Helper.removeAccents(data.title, withTime)
-    let check = await this.slugRepository.count({ where: { slug } })
+    let { title, lang_type } = data
+    let slug = Helper.removeAccents(title, true)
+    let check = await this.count({ where: { slug } })
     if (!!check) {
       return { error: MessageError.ERROR_EXISTS, data: null }
     }
-    let newSlug = await this.slugRepository.save(
-      Object.assign(new Slug(), { slug, type: SlugType.category })
-    )
-    let newCategory = await this.save({ title, type, slug: newSlug, lang_type })
+    let new_category = await this.save({ title, lang_type, slug })
     return {
       error: null,
-      data: CategoryDto.plainToClass(newCategory as any)
+      data: CategoryDto.plainToClass(new_category as any)
     }
   }
 
   async updateCategory(id: number, data: UpdateCategoryDto): Promise<ResponseServiceInterface<CategoryDto>> {
-    let { title, type, lang_type, hidden } = data
-    let category = await this.findOne({ where: { id }, relations: ["slug"] })
+    let { title, lang_type, hidden } = data
+    let category = await this.findOne({ where: { id } })
     if (!category) {
       return { error: MessageError.ERROR_NOT_FOUND, data: null }
     }
     let withTime = false
-    let slug = Helper.removeAccents(title, withTime)
-    if (title) {
-      let checkSlug = await this.slugRepository.findOne({ where: { slug, id: Not(category.slug_id) } })
-      if (!!checkSlug) {
+    let new_slug = Helper.removeAccents(title, withTime)
+    let old_slug = Helper.removeAccents(category.title, withTime)
+    if (new_slug != old_slug) {
+      new_slug = Helper.removeAccents(title, true)
+      let count = await this.count({ where: { slug: new_slug }})
+      if (!!count) {
         return { error: MessageError.ERROR_EXISTS, data: null }
       }
-      if (slug != category.slug.slug) {
-        let updateSlug = await this.slugRepository.save({ id: category.slug_id, slug })
-        category.title = title
-        category.slug = updateSlug
-      }
+      category.title = title
+      category.slug = new_slug
     }
-    if (type) category.type = type
     if(lang_type) category.lang_type = lang_type
     if(hidden != undefined) category.hidden = hidden
     await this.updateOne({ id: category.id }, category)
@@ -125,25 +117,20 @@ export class CategoryService {
   handleFilter(payload: BaseListFilterDto<any, any>, page: number, limit: number): FindManyOptions {
     let condition: FindManyOptions<Category> = {
       select: {
-        slug: {
-          id: true,
-          slug: true,
-          type: true
-        },
-        hidden: false
+        // hidden: false
       },
       order: payload.sort,
       take: limit,
-      skip: (page - 1) * limit,
-      relations: {
-        slug: true
-      }
+      skip: (page - 1) * limit
     }
     let where: FindOptionsWhere<Category> = {};
     if (payload.search) {
       let search = Helper.removeAccents(payload.search, false)
-      where.slug = {
-        slug: Like(`%${search}%`)
+      where.slug = Like(`%${search}%`)
+    }
+    if(payload.filter.topic_ids) {
+      where.topics  = {
+        id: In(payload.filter.topic_ids)
       }
     }
     if (Object.keys(where).length > 0) {

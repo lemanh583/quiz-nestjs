@@ -32,8 +32,11 @@ import { Transaction } from './transaction/transaction.entity';
 import { CategoryExam } from './category-exam/category-exam.entity';
 import { SeederModule } from './seeder/seeder.module';
 import { TransactionModule } from './transaction/transaction.module';
-import { PackageController } from './package/package.controller';
 import { PackageModule } from './package/package.module';
+import { TopicModule } from './topic/topic.module';
+import { Topic } from './topic/topic.entity';
+import { TagModule } from './tag/tag.module';
+import { Tag } from './tag/tag.entity';
 
 @Module({
   imports: [
@@ -61,7 +64,9 @@ import { PackageModule } from './package/package.module';
         ExamQuestion,
         Package,
         Transaction,
-        CategoryExam
+        CategoryExam,
+        Topic,
+        Tag
       ],
       synchronize: true,
       // logging: true
@@ -86,6 +91,8 @@ import { PackageModule } from './package/package.module';
     SeederModule,
     TransactionModule,
     PackageModule,
+    TopicModule,
+    TagModule,
   ],
 })
 export class AppModule { }

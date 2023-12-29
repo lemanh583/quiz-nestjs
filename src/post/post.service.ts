@@ -4,21 +4,24 @@ import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Like, Repository
 import { Post } from './post.entity';
 import { ResponseServiceInterface } from 'src/common/interface';
 import { CreatePostDto, UpdatePostDto } from './dto';
-import { Category } from 'src/category/category.entity';
 import { Slug } from 'src/slug/slug.entity';
 import { Helper } from 'src/common/helper';
 import { MessageError } from 'src/common/enum/error.enum';
 import { SlugType } from 'src/common/enum/slug.enum';
 import { BaseListFilterDto } from 'src/common/base/base.list';
+import { Topic } from 'src/topic/topic.entity';
+import { Tag } from 'src/tag/tag.entity';
 @Injectable()
 export class PostService {
     constructor(
         @InjectRepository(Post)
         private readonly repository: Repository<Post>,
-        @InjectRepository(Category)
-        private readonly categoryRepository: Repository<Category>,
+        @InjectRepository(Topic)
+        private readonly topicRepository: Repository<Topic>,
         @InjectRepository(Slug)
-        private readonly slugRepository: Repository<Slug>
+        private readonly slugRepository: Repository<Slug>,
+        @InjectRepository(Tag)
+        private readonly tagRepository: Repository<Tag>
     ) { }
 
     async findOne(condition: FindOneOptions<Post>): Promise<Post> {
@@ -31,7 +34,7 @@ export class PostService {
         return this.repository.save(updateRecord);
     }
 
-    async save(data: any): Promise<Post> {
+    async save(data: Partial<Post>): Promise<Post> {
         const entity = Object.assign(new Post(), data);
         return this.repository.save(entity);
     }
@@ -63,7 +66,7 @@ export class PostService {
     async getPost(slug: string): Promise<ResponseServiceInterface<any>> {
         let post = await this.findOne({
             where: { slug: { slug } },
-            relations: { category: true, slug: true }
+            relations: { topic: true, slug: true }
         })
         if (!post) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -72,29 +75,34 @@ export class PostService {
     }
 
     async createPost(body: CreatePostDto): Promise<ResponseServiceInterface<any>> {
-        let { title, descriptions, category_id, content } = body;
+        let { title, descriptions, topic_id, content, tag_ids } = body;
         let slug = Helper.removeAccents(title, true)
         let check_slug = await this.slugRepository.count({ where: { slug } })
         if (check_slug) {
             return { error: MessageError.ERROR_EXISTS, data: null }
         }
         let slug_db = await this.slugRepository.save({ slug, type: SlugType.post })
-        let category = await this.categoryRepository.findOne({ where: { id: category_id } })
-        if (!category) {
+        let topic = await this.topicRepository.findOne({ where: { id: topic_id } })
+        if (!topic) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let tags = []
+        if (tag_ids.length > 0) {
+            tags = await this.tagRepository.find({ where: { id: In(tag_ids) } })
         }
         let post = await this.save({
             title,
             slug: slug_db,
             descriptions,
             content,
-            category
+            topic,
+            tags
         })
         return { error: null, data: post }
     }
 
     async updatePost(post_id: number, body: UpdatePostDto): Promise<ResponseServiceInterface<any>> {
-        let { title, descriptions, content, category_id, position } = body
+        let { title, descriptions, content, topic_id, tag_ids } = body
         let post = await this.findOne({ where: { id: post_id } })
         if (!post) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -109,17 +117,19 @@ export class PostService {
             post_update.slug = await this.slugRepository.save({ id: post.slug_id, slug: slug_update })
             post_update.title = title
         }
-        if (category_id && post.category_id != category_id) {
-            let category = await this.categoryRepository.findOne({ where: { id: category_id } })
-            if (!category) {
+        if (topic_id && post.topic_id != topic_id) {
+            let topic = await this.topicRepository.findOne({ where: { id: topic_id } })
+            if (!topic) {
                 return { error: MessageError.ERROR_NOT_FOUND, data: null }
             }
-            post_update.category = category
+            post_update.topic = topic
         }
-
+        if (tag_ids.length > 0) {
+            let tags = await this.tagRepository.find({ where: { id: In(tag_ids) } })
+            post_update.tags = tags
+        }
         if (descriptions) post_update.descriptions = descriptions
         if (content) post_update.content = content
-        if (position) post_update.position = position
         let update = await this.updateOne({ id: post.id }, post_update)
         return { error: null, data: update }
     }
@@ -156,10 +166,15 @@ export class PostService {
                     slug: true,
                     type: true
                 },
-                category: {
+                topic: {
                     id: true,
                     title: true,
                     type: true
+                },
+                tags: {
+                    id: true,
+                    title: true,
+                    slug: true
                 }
             },
             order: payload.sort || { created_at: "DESC" },
@@ -167,7 +182,8 @@ export class PostService {
             skip: (page - 1) * limit,
             relations: {
                 slug: true,
-                category: true
+                topic: true,
+                tags: true
             }
         }
         let where: FindOptionsWhere<Post> = {};
@@ -177,13 +193,20 @@ export class PostService {
                 slug: Like(`%${search}%`)
             }
         }
-        if (Array.isArray(payload?.filter?.category_ids)) {
-            where.category = {
-                id: In(payload.filter.category_ids)
+        if (Array.isArray(payload?.filter?.topic_ids)) {
+            where.topic = {
+                id: In(payload.filter.topic_ids)
             }
         }
-        if (Array.isArray(payload?.filter?.positions)) {
-            where.position = In(payload?.filter?.positions)
+        if (Array.isArray(payload?.filter?.tag_ids)) {
+            where.tags = {
+                id: In(payload.filter?.tag_ids)
+            }
+        }
+        if (Array.isArray(payload?.filter?.tag_slugs)) {
+            where.tags = {
+                slug: In(payload.filter?.tag_slugs)
+            }
         }
         if (Object.keys(where).length > 0) {
             condition.where = where
