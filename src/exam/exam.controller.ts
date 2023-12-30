@@ -87,13 +87,13 @@ export class ExamController {
     }
 
     @Post('/:exam_id/end')
-    async endExam(@Body() body: ExamEndDto, @Param("exam_id", ParseIntPipe) exam_id: number, @CurrentUser() user: PayloadTokenInterface, @Query() query: any): Promise<any> {
+    async endExam(@Body() body: ExamEndDto, @Param("exam_id", ParseIntPipe) exam_id: number, @CurrentUser() user: PayloadTokenInterface): Promise<any> {
         try {
             let { error, data } = await this.examService.endExam(exam_id, user, body)
             if (error) {
                 throw new HttpException(error, HttpStatus.BAD_REQUEST)
             }
-            let result = await this.examHistoryService.detailHistory(data.id, user.id, query || {})
+            let result = await this.examHistoryService.detailHistory(data.id, user.id, body)
             if (result.error) {
                 throw new HttpException(result.error, HttpStatus.BAD_REQUEST)
             }

@@ -97,7 +97,7 @@ export class ExamHistoryService {
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount()
-
+        
         let new_map = histories.map(h => {
             h.question.answers.sort((a, b) => a.id - b.id)
             h.question.answers = h.question.answers.map((item) => {

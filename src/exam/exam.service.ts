@@ -566,8 +566,8 @@ export class ExamService {
         }
         let time_current = new Date()
         let timeCurrentMili = time_current.getTime()
-        // Tăng thêm 2s trước khi nạp bài
-        if (exam.time_end && new Date(exam.time_end.getTime() + 2 * 1000) < time_current) {
+        // Tăng thêm 10s trước khi nạp bài
+        if (exam.time_end && new Date(exam.time_end.getTime() + 10 * 1000) < time_current) {
             return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
         }
         if (exam.time_start && exam.time_start > time_current) {
@@ -598,12 +598,13 @@ export class ExamService {
                 let correct_row = row.question.answers.find(a => a.id == submit_element?.answer_id)
                 if (submit_element) {
                     correct_row?.correct && total_question_correct++
+                    let correct = (correct_row != undefined) && correct_row.correct
                     await this.historyAnswerRepository.update({
                         question_id: row.question_id,
                         exam_history_id: history_exam.id
                     }, {
-                        score: question_score,
-                        correct: (correct_row != undefined) && correct_row.correct,
+                        score: correct ? question_score : 0,
+                        correct,
                         answer_id: String(submit_element.answer_id)
                     })
                 }
