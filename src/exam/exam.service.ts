@@ -149,6 +149,7 @@ export class ExamService {
             }
             let exam_DB = await queryRunner.manager.save(Exam, newExam)
             let random_questions: any = []
+            // console.log('new_categories', new_categories)
             await Promise.all(
                 new_categories.map(async (category) => {
                     let checkCategoryDB = await this.categoryRepository.findOne({ where: { id: category.category_id } })
@@ -165,13 +166,14 @@ export class ExamService {
                         .getMany()
 
                     let exam_ids = get_exams.map((exam) => exam.id)
+                    // console.log('exam_ids', exam_ids, category.category_id)
                     let get_random_question = await this.examQuestionRepository
                         .createQueryBuilder("e")
                         .where("e.exam_id IN (:...exam_ids)", { exam_ids: exam_ids })
                         .orderBy('RAND()')
                         .take(category.take)
                         .getMany()
-
+                    // console.log('get_random_question', get_random_question.length)
                     await queryRunner.manager.save(CategoryExam, {
                         category: checkCategoryDB,
                         exam: exam_DB,
@@ -197,6 +199,7 @@ export class ExamService {
                 }
             }
         } catch (error) {
+            console.log(error)
             await queryRunner.rollbackTransaction();
             return { error: error, data: null }
         } finally {
@@ -769,6 +772,7 @@ export class ExamService {
                 categories: true
             }
         })
+        // console.log('topic', topic)
         let total_question = topic.lang_type == ExamLangType.en ? 30 : 60
         let categories = []
         if (topic.categories.length > total_question) {
@@ -793,7 +797,7 @@ export class ExamService {
             lang_type: topic.lang_type,
             total_question
         }
-
+        // console.log('body_gen', body_gen)
         let { error, data } = await this.autoGenerateExam(user_decode, body_gen)
         if (error) {
             return { error, data: null }

@@ -73,22 +73,22 @@ export class SlugController {
                         if (rs_posts.error) {
                             throw new HttpException(rs_posts.error, HttpStatus.BAD_REQUEST)
                         }
-                        rs = { ...rs_posts.data }
+                        rs = { ...rs_posts.data, type: 'posts' }
                     }
                     // Nếu là exam thì trả về thông tin của topic
                     if (topic.type == TopicType.exam) {
                         let is_access_topic = await this.topicService.isAccessTopic(topic, user)
-                        rs = { data: { ...topic, is_access_topic } }
+                        rs = { data: { ...topic, is_access_topic }, type: "exam" }
                     }
                     break;
                 case SlugType.post:
-                    let post = await this.postService.findOne({ where: { slug: { slug } } })
+                    let post = await this.postService.findOne({ where: { slug: { slug } }, relations: { slug: true } })
                     if (!post) {
                         throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
                     }
                     // update view
                     await this.postService.updateOne({ id: post.id }, { view: post.view + 1 })
-                    rs = { data: post }
+                    rs = { data: post, type: 'post' }
                     break;
                 default:
                     break

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from './topic.entity';
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, Like, Not, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
 import { PayloadTokenInterface, ResponseServiceInterface } from 'src/common/interface';
 import { MessageError } from 'src/common/enum/error.enum';
 import { ExamHistory } from 'src/exam-history/exam-history.entity';
@@ -175,6 +175,12 @@ export class TopicService {
             where.slug = {
                 slug: Like(`%${search}%`)
             }
+        }
+        if(payload?.filter?.types) {
+            where.type = In(payload.filter?.types)
+        }
+        if(payload?.filter?.lang_type) {
+            where.lang_type = payload.filter?.lang_type
         }
         if (Object.keys(where).length > 0) {
             condition.where = where
