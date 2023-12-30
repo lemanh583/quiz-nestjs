@@ -23,6 +23,6 @@ async function bootstrap() {
     filter: () => { return true },
     threshold: 0
   }));
-  await app.listen(3000);
+  await app.listen(Number(process.env.SERVER_PORT));
 }
 bootstrap();
