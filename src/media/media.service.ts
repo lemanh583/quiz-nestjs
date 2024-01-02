@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Like, Repository } from 'typeorm';
 import { Media } from './media.entity';
 import { ResponseServiceInterface } from 'src/common/interface';
 import { CreateMediaDto } from './dto';
 import { BaseListFilterDto } from 'src/common/base/base.list';
 import { MessageError } from 'src/common/enum/error.enum';
 import * as fs from 'fs';
+import * as path from "path"
 @Injectable()
 export class MediaService {
     constructor(@InjectRepository(Media) private readonly repository: Repository<Media>) { }
@@ -56,19 +57,20 @@ export class MediaService {
             let record = new Media()
             record.size = file.size
             record.src = process.env.SERVER_NAME + '/static/' + file.filename
-            record.type = file.mimetype
-            record.name = file.filename
+            record.type = path.extname(file.filename)
+            record.mimetype = file.mimetype
+            record.name = file.originalname
             record.ref_type = ref_type
             record.ref_id = ref_id
             record.local_path = file.path
             return Object.assign(new Media(), record)
         })
-        await this.repository.insert(records)
-        return { error: null, data: { message: 'done!' } }
+        let list =await this.repository.save(records)
+        return { error: null, data: { list,  message: 'done!' } }
     }
 
     async listMedia(payload: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
-        let { limit = 10, page = 1 } = payload
+        let { limit = 20, page = 1 } = payload
         let condition = this.handleFilter(payload, page, limit)
         let [list, total] = await this.findAndCount(condition)
         return {
@@ -89,6 +91,9 @@ export class MediaService {
             skip: (page - 1) * limit,
         }
         let where: FindOptionsWhere<Media> = {};
+        if(payload.search) {
+            where.name = Like((`%${payload.search}%`))
+        }
         if (payload?.filter?.types) {
             where.type = In(payload.filter.types)
         }

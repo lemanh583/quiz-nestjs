@@ -150,6 +150,7 @@ export class ExamService {
             let exam_DB = await queryRunner.manager.save(Exam, newExam)
             let random_questions: any = []
             // console.log('new_categories', new_categories)
+            let failed_category_ids = []
             await Promise.all(
                 new_categories.map(async (category) => {
                     let checkCategoryDB = await this.categoryRepository.findOne({ where: { id: category.category_id } })
@@ -165,6 +166,10 @@ export class ExamService {
                         .orderBy('RAND()')
                         .getMany()
 
+                    if (get_exams.length == 0) {
+                        failed_category_ids.push(category.category_id)
+                        return
+                    }
                     let exam_ids = get_exams.map((exam) => exam.id)
                     // console.log('exam_ids', exam_ids, category.category_id)
                     let get_random_question = await this.examQuestionRepository
@@ -190,11 +195,13 @@ export class ExamService {
             await queryRunner.manager.insert(ExamQuestion, data_insert)
             await queryRunner.commitTransaction()
             return {
-                error: null, data: {
+                error: null,
+                data: {
                     exam: {
                         ...exam_DB,
                         total_question: data_insert.length
                     },
+                    failed_category_ids,
                     message: "Done!"
                 }
             }
@@ -413,7 +420,9 @@ export class ExamService {
             .createQueryBuilder("e")
             // .leftJoin("e.slug", "s")
             // .addSelect(["s.id", "s.slug", "s.type"])
-            .leftJoin("e.category_exams", "ce")
+            .leftJoinAndSelect("e.category_exams", "ce")
+            // .leftJoinAndSelect("ce.category", "c")
+            // .leftJoinAndSelect("c.topics", "t")
             .loadRelationCountAndMap("e.total_question", "e.exam_questions")
 
         this.handleFilter(query, filter, page, limit)
@@ -443,10 +452,10 @@ export class ExamService {
         if (payload?.filter?.lang_type) {
             query.andWhere("e.lang_type = :lang_type", { lang_type: payload?.filter?.lang_type })
         }
-        if(payload?.filter?.user_ids) {
+        if (payload?.filter?.user_ids) {
             query.andWhere("e.user_id IN (:...user_ids)", { user_ids: payload?.filter?.user_ids })
         }
-        if(payload?.filter?.topic_ids) {
+        if (payload?.filter?.topic_ids) {
             query.andWhere("e.topic_id IN (:...topic_ids)", { topic_ids: payload?.filter?.topic_ids })
         }
         if (Object.keys(payload?.sort || {}).length > 0) {
@@ -499,7 +508,7 @@ export class ExamService {
             || (latest_history && latest_history.end_time)
             || time_condition;
 
-        // condition && (buildQuery = buildQuery.orderBy('RAND()'))
+        // condition && (build_query = build_query.orderBy('RAND()'))
         let questions_random = await build_query.getMany()
 
         let count_work = await this.examHistoryRepository.count({ where: { exam_id: exam.id, user_id: user.id } })
@@ -553,10 +562,10 @@ export class ExamService {
         return {
             error: null,
             data: {
-                exam: { ...exam, total_question: new_questions_random.length},
+                exam: { ...exam, total_question: new_questions_random.length },
                 latest_history,
                 list: new_questions_random.splice((page - 1) * limit, limit),
-                end,     
+                end,
             }
         }
     }
@@ -802,7 +811,7 @@ export class ExamService {
         if (error) {
             return { error, data: null }
         }
-        return { error: null, data}
+        return { error: null, data }
     }
 
 }   

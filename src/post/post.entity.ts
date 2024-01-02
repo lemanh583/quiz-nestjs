@@ -10,7 +10,7 @@ export class Post extends BaseEntity {
     @Column()
     title: string
 
-    @Column()
+    @Column({ type: "mediumtext" })
     description: string
 
     @Column({ type: "longtext" })

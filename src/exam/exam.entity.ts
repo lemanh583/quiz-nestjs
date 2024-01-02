@@ -1,10 +1,6 @@
 import { Entity, Column, OneToOne, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/base/base.entity';
-import { Slug } from 'src/slug/slug.entity';
-import { Category } from 'src/category/category.entity';
-import { Question } from 'src/question/question.entity';
 import { ExamHistory } from 'src/exam-history/exam-history.entity';
-import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { ExamQuestion } from 'src/exam-question/exam-question.entity';
 import { ExamLangType, ExamType } from 'src/common/enum/exam.enum';
 import { User } from 'src/user/user.entity';
@@ -52,14 +48,15 @@ export class Exam extends BaseEntity {
     // @Column({ name: "slug_id" })
     // slug_id: number
     
-    @ManyToOne(() => User, user => user.exams, {cascade: true,  onDelete: "CASCADE", nullable: true })
+    @ManyToOne(() => User, user => user.exams, { onDelete: "CASCADE", nullable: true })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
     @Column({ name: "user_id" })
     user_id: number
 
-    @ManyToOne(() => Topic, user => user.exams, {cascade: true,  onDelete: "CASCADE", nullable: true })
+    // Lưu topic_id đối với những đề được user gen tự động
+    @ManyToOne(() => Topic, user => user.exams, { onDelete: "CASCADE", nullable: true })
     @JoinColumn({ name: 'topic_id' })
     topic: Topic;
 

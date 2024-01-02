@@ -21,7 +21,7 @@ export class UploadMiddleware implements MulterOptionsFactory {
         },
       }),
       limits: {
-        fileSize: 160 * 1024, // 25MB limit,
+        fileSize: 25 * 1024 * 1024, // 25MB limit,
       }
     };
   }

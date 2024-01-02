@@ -191,7 +191,7 @@ export class SeederService implements OnModuleInit {
                 await this.topicService.createTopic({
                     title: topic,
                     type: topic == 'Tin tức'? TopicType.post : TopicType.exam,
-                    lang_type: index == this.list_topic.length - 1 ? ExamLangType.en : ExamLangType.vi
+                    lang_type: topic == 'Tiếng Anh' ? ExamLangType.en : ExamLangType.vi
                 }).catch(e => e)
             })
         )

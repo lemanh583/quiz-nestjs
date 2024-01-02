@@ -10,6 +10,9 @@ export class Media extends BaseEntity {
     @Column({ default: null })
     type: string
 
+    @Column({ default: null })
+    mimetype: string
+
     @Column({ default: null})
     size: number
 
