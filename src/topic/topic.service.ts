@@ -115,13 +115,13 @@ export class TopicService {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
         let withTime = false
-        let slug = Helper.removeAccents(title, withTime)
         if (title) {
+            let slug = Helper.removeAccents(title, withTime)
             let checkSlug = await this.slugRepository.findOne({ where: { slug, id: Not(topic.slug_id) } })
             if (!!checkSlug) {
                 return { error: MessageError.ERROR_EXISTS, data: null }
             }
-            if (slug != topic.slug.slug) {
+            if (title != topic.title) {
                 let updateSlug = await this.slugRepository.save({ id: topic.slug_id, slug })
                 topic.title = title
                 topic.slug = updateSlug
