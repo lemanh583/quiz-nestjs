@@ -109,7 +109,7 @@ export class TopicService {
     }
 
     async updateTopic(id: number, data: UpdateTopicDto): Promise<ResponseServiceInterface<any>> {
-        let { title, type, lang_type, hidden } = data
+        let { title, type, lang_type, hidden, img } = data
         let topic = await this.findOne({ where: { id }, relations: ["slug"] })
         if (!topic) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -130,6 +130,7 @@ export class TopicService {
         if (type) topic.type = type
         if (lang_type) topic.lang_type = lang_type
         if (hidden != undefined) topic.hidden = hidden
+        if (img) topic.img = img
         await this.updateOne({ id: topic.id }, topic)
         return {
             error: null,
