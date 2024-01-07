@@ -141,6 +141,7 @@ export class ExamController {
             if (query.page) {
                 payload.page = Number(query.page) && Number(query.limit) > 0 ? Number(query.page) : 1
             }
+            if (!payload.filter) payload.filter = {}
             payload.filter.user_ids = [user.id]
             payload.filter.topic_ids = [topic.id]
             let { error, data } = await this.examService.getListExam(payload)
@@ -153,6 +154,7 @@ export class ExamController {
                 ...data
             }
         } catch (error) {
+            console.log(error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
