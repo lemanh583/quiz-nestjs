@@ -105,7 +105,7 @@ export class ExamService {
             if (!checkUser) {
                 return { error: MessageError.ERROR_NOT_FOUND, data: null }
             }
-            let { categories, lang_type, total_question, topic_id } = body
+            let { categories, lang_type, total_question, topic_id, total_work } = body
             let total_questions = total_question ? total_question : 60
             let sum_percent: number = 0
             let total_question_from_percent: number = 0
@@ -139,6 +139,7 @@ export class ExamService {
                 // category,
                 // slug: slugDB,
                 // total_generate_question: totalQuestions,
+                total_work,
                 lang_type,
                 user_id: user.id,
                 type: ExamType.auto
@@ -472,7 +473,7 @@ export class ExamService {
 
     async startExam(id: number, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
         let { page = 1, limit = 60 } = query
-        let exam = await this.findOne({ where: { id } })
+        let exam = await this.findOne({ where: { id }, relations: { topic: true } })
         if (!exam || exam?.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -512,7 +513,7 @@ export class ExamService {
         let questions_random = await build_query.getMany()
 
         let count_work = await this.examHistoryRepository.count({ where: { exam_id: exam.id, user_id: user.id } })
-        if (count_work >= exam.total_work && (time_condition || !exam.time_work_minutes)) {
+        if (((count_work >= exam.total_work) && latest_history.end_time) && (time_condition || !exam.time_work_minutes)) {
             return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
         }
 
@@ -562,6 +563,7 @@ export class ExamService {
         return {
             error: null,
             data: {
+                topic: exam.topic,
                 exam: { ...exam, total_question: new_questions_random.length },
                 latest_history,
                 list: new_questions_random.splice((page - 1) * limit, limit),
@@ -597,7 +599,6 @@ export class ExamService {
             where: { exam_id: exam.id, user_id: user.id },
             order: { created_at: "DESC" }
         })
-
         if (history_exam.end_time) {
             return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
         }
@@ -804,7 +805,8 @@ export class ExamService {
             categories,
             topic_id: topic.id,
             lang_type: topic.lang_type,
-            total_question
+            total_question,
+            total_work: 1
         }
         // console.log('body_gen', body_gen)
         let { error, data } = await this.autoGenerateExam(user_decode, body_gen)

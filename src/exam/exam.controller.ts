@@ -103,6 +103,7 @@ export class ExamController {
                 ...result.data
             }
         } catch (error) {
+            console.log(error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }

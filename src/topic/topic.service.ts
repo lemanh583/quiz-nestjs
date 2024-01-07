@@ -185,7 +185,7 @@ export class TopicService {
         }
         if (Object.keys(where).length > 0) {
             condition.where = where
-        }
+        }   
         return condition
     }
 }

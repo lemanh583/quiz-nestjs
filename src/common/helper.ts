@@ -30,7 +30,7 @@ export class Helper {
     let castPage = Number(page)
     let castLimit = Number(limit)
     page = castPage && castPage > 0 ? Number(page) : 1
-    limit = castLimit && castLimit > 0 ? Number(limit) : 10
+    limit = castLimit && castLimit > 0 ? Number(limit) : 30
     return { page: page, limit: limit }
   }
 

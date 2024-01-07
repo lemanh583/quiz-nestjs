@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ExamHistory } from './exam-history.entity';
 import { PayloadTokenInterface, ResponseServiceInterface } from 'src/common/interface';
 import { MessageError } from 'src/common/enum/error.enum';
 import { Exam } from 'src/exam/exam.entity';
 import { Helper } from 'src/common/helper';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
+import { Topic } from 'src/topic/topic.entity';
+import { ExamType } from 'src/common/enum/exam.enum';
 
 @Injectable()
 export class ExamHistoryService {
@@ -17,6 +19,8 @@ export class ExamHistoryService {
         private readonly examRepository: Repository<Exam>,
         @InjectRepository(HistoryAnswer)
         private readonly historyAnswerRepository: Repository<HistoryAnswer>,
+        @InjectRepository(Topic)
+        private readonly topicRepository: Repository<Topic>,
     ) { }
 
     async findOne(condition: FindOneOptions<ExamHistory>): Promise<ExamHistory> {
@@ -97,7 +101,7 @@ export class ExamHistoryService {
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount()
-        
+
         let new_map = histories.map(h => {
             h.question.answers.sort((a, b) => a.id - b.id)
             h.question.answers = h.question.answers.map((item) => {
@@ -133,6 +137,41 @@ export class ExamHistoryService {
                 limit
             }
         }
+    }
+
+    async getListHistoryForTopic(slug: string, user_decode: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
+        let { page, limit } = Helper.transformQueryList(query)
+        let topic = await this.topicRepository.findOne({ where: { slug: { slug } } })
+        if (!topic) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let exams = await this.examRepository.find({
+            where: {
+                user_id: user_decode.id,
+                type: ExamType.auto,
+                topic_id: topic.id
+            },
+            order: {
+                id: "DESC"
+            },
+            select: ["id"]
+        })
+        let exam_ids = exams.map(i => i.id)
+        let [list, total] = await this.repository.findAndCount({
+            where: {
+                user_id: user_decode.id,
+                exam_id: In(exam_ids)
+            },
+            take: limit,
+            skip: (page - 1) * limit
+        })
+        list = list.map(item => {
+            return {
+                ...item,
+                total_minute_work: Helper.calculateTimeWorkExam(item.start_time, item.end_time)
+            }
+        })
+        return { error: null, data: { list, total, page, limit } }
     }
 
 }
