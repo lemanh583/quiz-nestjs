@@ -599,7 +599,7 @@ export class ExamService {
             where: { exam_id: exam.id, user_id: user.id },
             order: { created_at: "DESC" }
         })
-        if (history_exam.end_time) {
+        if (history_exam?.end_time) {
             return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
         }
 

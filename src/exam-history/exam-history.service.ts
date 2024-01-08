@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { ExamHistory } from './exam-history.entity';
 import { PayloadTokenInterface, ResponseServiceInterface } from 'src/common/interface';
 import { MessageError } from 'src/common/enum/error.enum';
@@ -171,6 +171,53 @@ export class ExamHistoryService {
                 total_minute_work: Helper.calculateTimeWorkExam(item.start_time, item.end_time)
             }
         })
+        return { error: null, data: { list, total, page, limit } }
+    }
+
+    async getListRank(body: any): Promise<ResponseServiceInterface<any>> {
+        let { page, limit } = Helper.transformQueryList(body)
+        let { sort } = body
+        let sub_query = this.repository
+            .createQueryBuilder("eh_sub")
+            .select(['eh_sub.user_id', 'e_sub.topic_id', 'MAX(eh_sub.score) as max_score'])
+            .leftJoin("eh_sub.exam", "e_sub")
+            .where('eh_sub.end_time IS NOT NULL')
+            .groupBy('eh_sub.user_id, e_sub.topic_id');
+
+        let query_builder = this.repository
+            .createQueryBuilder("eh")
+            .select([
+                'eh.user_id as user_id',
+                'eh.score as exam_score',
+                't.title as topic_title',
+                'u.name as user_name',
+                'u.email as user_email',
+                "eh.start_time as exam_start_time",
+                "eh.end_time as exam_end_time",
+                "TIMEDIFF(eh.end_time, eh.start_time) as time_diff"
+            ])
+            .leftJoin("eh.exam", "e")
+            .leftJoin("e.topic", "t")
+            .leftJoin("eh.user", "u")
+            .where((qb: SelectQueryBuilder<any>) => {
+                qb.where(`(eh.user_id, e.topic_id, eh.score) IN (${sub_query.getQuery()})`);
+                qb.setParameter('sub_query', sub_query.getParameters());
+            })
+            .andWhere('eh.end_time IS NOT NULL')
+            .take(limit)
+            .skip((page - 1) * limit)
+
+        if (sort && Object.keys(sort).length > 0 && ["exam_score", "time_diff"].includes(Object.keys(sort)[0])) {
+            let key = Object.keys(sort)[0]
+            query_builder.orderBy(key, ["DESC", "ASC"].includes(sort[key]) ? sort[key] : "DESC")
+        } else {
+            query_builder.orderBy("exam_score", "DESC")
+        }
+        
+        let [list, total] = await Promise.all([
+            query_builder.getRawMany(),
+            query_builder.getCount()
+        ])
         return { error: null, data: { list, total, page, limit } }
     }
 

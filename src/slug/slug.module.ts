@@ -9,6 +9,7 @@ import { JwtMiddleware } from 'src/common/middleware/jwt.middleware';
 import { TransactionModule } from 'src/transaction/transaction.module';
 import { PostModule } from 'src/post/post.module';
 import { TopicModule } from 'src/topic/topic.module';
+import { ExamHistoryModule } from 'src/exam-history/exam-history.module';
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import { TopicModule } from 'src/topic/topic.module';
         ExamModule,
         TransactionModule,
         PostModule,
-        TopicModule
+        TopicModule,
+        ExamHistoryModule
     ],
     controllers: [SlugController],
     providers: [

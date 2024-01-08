@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Headers, Req, Query } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, Post, Req, Query, Body } from '@nestjs/common';
 import { SlugService } from './slug.service';
 import { MessageError } from 'src/common/enum/error.enum';
 import { SlugType } from 'src/common/enum/slug.enum';
@@ -12,6 +12,7 @@ import { PostService } from 'src/post/post.service';
 import { TopicService } from 'src/topic/topic.service';
 import { TopicType } from 'src/common/enum/topic.enum';
 import { BaseListFilterDto } from 'src/common/base/base.list';
+import { ExamHistoryService } from 'src/exam-history/exam-history.service';
 
 @Controller('')
 export class SlugController {
@@ -22,6 +23,7 @@ export class SlugController {
         private readonly transactionService: TransactionService,
         private readonly postService: PostService,
         private readonly topicService: TopicService,
+        private readonly examHistoryService: ExamHistoryService,
     ) { }
 
     // @Get('/test')
@@ -38,6 +40,25 @@ export class SlugController {
     //         throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     //     }
     // }
+
+    @Post('/list-rank')
+    async listRank(@Body() body: any): Promise<any> {
+        try {
+            let { error, data } = await this.examHistoryService.getListRank(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.log(error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 
     @Get('/:slug')
     async getDataFromSlug(@Req() request: Request, @Param('slug') slug: string, @Query() query: any) {
@@ -104,4 +125,7 @@ export class SlugController {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
+
+
+
 }
