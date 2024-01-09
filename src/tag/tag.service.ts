@@ -66,11 +66,14 @@ export class TagService {
 
     async updateTag(id: number, body: UpdateTagDto): Promise<ResponseServiceInterface<any>> {
         let { title } = body
-        let slug = Helper.removeAccents(title, false)
         let tag = await this.findOne({ where: { id } })
         if (!tag) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
+        if (!title) {
+            return { error: null, data: tag }
+        }
+        let slug = Helper.removeAccents(title, false)
         if (tag.slug == slug) {
             return { error: null, data: tag }
         }
@@ -93,8 +96,10 @@ export class TagService {
         return { error: null, data: { message: "Done!" } }
     }
 
-    async listTag(): Promise<ResponseServiceInterface<any>> {
-        return
+    async listTag(query: any): Promise<ResponseServiceInterface<any>> {
+        let { page, limit } = Helper.transformQueryList(query);
+        let [list, total] = await this.repository.findAndCount({ take: limit, skip: (page - 1) * limit })
+        return { error: null, data: { list, total, page, limit } }
     }
 
 }

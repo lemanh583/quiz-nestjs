@@ -30,6 +30,8 @@ import { UserService } from 'src/user/user.service';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateTopicDto, UpdateTopicDto } from 'src/topic/dto';
 import { TopicService } from 'src/topic/topic.service';
+import { TagService } from 'src/tag/tag.service';
+import { CreateTagDto, UpdateTagDto } from 'src/tag/dto';
 
 @ApiBearerAuth()
 @Controller('admin')
@@ -46,6 +48,7 @@ export class AdminController {
         private readonly postService: PostService,
         private readonly userService: UserService,
         private readonly topicService: TopicService,
+        private readonly tagService: TagService,
     ) { }
     /**
     * TOPIC SERVICE
@@ -747,5 +750,90 @@ export class AdminController {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
+
+
+    /**
+    * TAG SERVICE
+    * @param body 
+    * @returns 
+    */
+
+    @Post('/tag/create')
+    async createTag(@Body() body: CreateTagDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.tagService.createTag(body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/tag/create', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Put('/tag/update/:id')
+    async updateTag(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTagDto): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.tagService.updateTag(id, body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                data
+            }
+        } catch (error) {
+            console.error('/admin/tag/update/:id', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+
+    @Delete('/tag/delete/:id')
+    async deleteTag(@Param('id', ParseIntPipe) id: number): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.tagService.deleteTag(id)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/tag/delete', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Get('/tag/list')
+    async listTag(@Query() query: any): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.tagService.listTag(query)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/tag/list', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
 
 }

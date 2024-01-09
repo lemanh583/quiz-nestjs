@@ -12,6 +12,7 @@ import { MediaModule } from 'src/media/media.module';
 import { PostModule } from 'src/post/post.module';
 import { UserModule } from 'src/user/user.module';
 import { TopicModule } from 'src/topic/topic.module';
+import { TagModule } from 'src/tag/tag.module';
 @Module({
   imports: [
     CategoryModule,
@@ -23,6 +24,7 @@ import { TopicModule } from 'src/topic/topic.module';
     PostModule,
     UserModule,
     TopicModule,
+    TagModule,
     MulterModule.registerAsync({
       useClass: UploadMiddleware,
     })
