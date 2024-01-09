@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, Repository, SelectQueryBuilder } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In, IsNull, Not, Repository, SelectQueryBuilder } from 'typeorm';
 import { ExamHistory } from './exam-history.entity';
 import { PayloadTokenInterface, ResponseServiceInterface } from 'src/common/interface';
 import { MessageError } from 'src/common/enum/error.enum';
@@ -9,6 +9,7 @@ import { Helper } from 'src/common/helper';
 import { HistoryAnswer } from 'src/history-answer/history-answer.entity';
 import { Topic } from 'src/topic/topic.entity';
 import { ExamType } from 'src/common/enum/exam.enum';
+import { BaseListFilterDto } from 'src/common/base/base.list';
 
 @Injectable()
 export class ExamHistoryService {
@@ -157,6 +158,9 @@ export class ExamHistoryService {
             select: ["id"]
         })
         let exam_ids = exams.map(i => i.id)
+        if(exam_ids.length == 0) {
+            return  { error: null, data: { list: [], total: 0, page, limit } }
+        }
         let [list, total] = await this.repository.findAndCount({
             where: {
                 user_id: user_decode.id,
@@ -213,7 +217,7 @@ export class ExamHistoryService {
         } else {
             query_builder.orderBy("exam_score", "DESC")
         }
-        
+
         let [list, total] = await Promise.all([
             query_builder.getRawMany(),
             query_builder.getCount()
@@ -221,4 +225,57 @@ export class ExamHistoryService {
         return { error: null, data: { list, total, page, limit } }
     }
 
+
+    async getAllListHistoryForUser(user_decode: PayloadTokenInterface, body: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
+        let { page, limit } = Helper.transformQueryList(body)
+        let { filter, sort } = body
+        let exams = await this.examRepository.find({
+            where: {
+                user_id: user_decode.id,
+                type: ExamType.auto,
+                topic_id: Not(IsNull())
+            },
+            order: {
+                id: "DESC"
+            },
+            select: ["id"]
+        })
+        let exam_ids = exams.map(i => i.id)
+        if(exam_ids.length == 0) {
+            return  { error: null, data: { list: [], total: 0, page, limit } }
+        }
+        let query_builder = this.repository.createQueryBuilder("eh")
+            .leftJoin("eh.exam", "e")
+            .addSelect("e.topic_id")
+            .leftJoin("e.topic", "t")
+            .addSelect(["t.id","t.title"])
+            .leftJoin("t.slug", "s")
+            .addSelect("s.slug")
+            .where("eh.exam_id IN (:...exam_ids)", { exam_ids: exam_ids })
+            .andWhere("eh.user_id = :user_id", { user_id: user_decode.id })
+            
+        if(filter?.topic_slugs && Array.isArray(filter.topic_slugs)) {
+            query_builder.andWhere("s.slug IN (:...slugs)", { slugs: filter.topic_slugs })
+        }   
+        if(filter?.topic_ids && Array.isArray(filter.topic_ids)) {
+            query_builder.andWhere("t.id IN (:...ids)", { ids: filter.topic_ids })
+        }
+          
+        if (sort && Object.keys(sort).length > 0 && ["score", "created_at"].includes(Object.keys(sort)[0])) {
+            let key = Object.keys(sort)[0]
+            query_builder.orderBy(`eh.${key}`, ["DESC", "ASC"].includes(sort[key]) ? sort[key] : "DESC")
+        } else {
+            query_builder.orderBy("eh.created_at", "DESC")
+        }
+
+        let [list, total] = await query_builder.getManyAndCount()
+        list = list.map(item => {
+            return {
+                ...item,
+                total_minute_work: Helper.calculateTimeWorkExam(item.start_time, item.end_time)
+            }
+        })
+        return { error: null, data: { list, total, page, limit } }
+    }
+    
 }
