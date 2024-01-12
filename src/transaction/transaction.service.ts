@@ -175,4 +175,13 @@ export class TransactionService {
         return { error: null, data: transaction }
     }
 
+    async deleteTransaction(id: number): Promise<ResponseServiceInterface<any>> {
+        let transaction = await this.findOne({ where: { id } })
+        if (!transaction) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        await this.repository.delete({ id })
+        return { error: null, data: { message: "Done!" } }
+    }
+
 }

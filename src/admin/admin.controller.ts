@@ -624,6 +624,25 @@ export class AdminController {
         }
     }
 
+    @Delete('/transaction/delete/:id')
+    async deleteTransaction(@Param('id', ParseIntPipe) id: number): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.transactionService.deleteTransaction(id)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/tag/delete', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
 
     /**
      * POST SERVICE
