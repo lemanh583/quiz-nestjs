@@ -75,6 +75,8 @@ export class TransactionService {
             topic_ids.map(async (topic_id: number) => {
                 let topic = await this.topicRepository.findOne({ where: { id: topic_id } })
                 if (!topic) return
+                let count = await this.count({ where: { topic_id: topic.id, user_id } })
+                if (count > 0) return
                 await this.save({
                     price,
                     package: package_db,
