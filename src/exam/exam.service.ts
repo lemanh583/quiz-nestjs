@@ -509,7 +509,7 @@ export class ExamService {
             || (latest_history && latest_history.end_time)
             || time_condition;
 
-        // condition && (build_query = build_query.orderBy('RAND()'))
+        condition && (build_query = build_query.orderBy('RAND()'))
         let questions_random = await build_query.getMany()
 
         let count_work = await this.examHistoryRepository.count({ where: { exam_id: exam.id, user_id: user.id } })
