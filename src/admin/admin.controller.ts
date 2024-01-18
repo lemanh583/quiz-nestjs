@@ -32,6 +32,8 @@ import { CreateTopicDto, UpdateTopicDto } from 'src/topic/dto';
 import { TopicService } from 'src/topic/topic.service';
 import { TagService } from 'src/tag/tag.service';
 import { CreateTagDto, UpdateTagDto } from 'src/tag/dto';
+import { Helper } from 'src/common/helper';
+import * as path from 'path';
 
 @ApiBearerAuth()
 @Controller('admin')

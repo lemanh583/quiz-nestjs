@@ -21,7 +21,7 @@ export class TopicService {
         @InjectRepository(Topic) private readonly repository: Repository<Topic>,
         @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
-        // @InjectRepository(ExamHistory) private readonly examHistoryRepository: Repository<ExamHistory>,
+        @InjectRepository(ExamHistory) private readonly examHistoryRepository: Repository<ExamHistory>,
         @InjectRepository(Slug) private readonly slugRepository: Repository<Slug>,
     ) { }
 
@@ -64,30 +64,34 @@ export class TopicService {
         return this.repository.count(condition)
     }
 
-    async isAccessTopic(topic: Topic, user_decode: PayloadTokenInterface): Promise<boolean> {
-        if(!user_decode) return false
-        if (!topic.id) return false
-        if (user_decode.role == UserRole.ADMIN) return true
+    async isAccessTopic(topic: Topic, user_decode: PayloadTokenInterface): Promise<{ is_access_topic: boolean, is_free: boolean }> {
+        if (!user_decode || !topic.id) {
+            return { is_access_topic: false, is_free: true }
+        }
+        if (user_decode.role == UserRole.ADMIN) {
+            return { is_access_topic: true, is_free: false }
+        }
         let transaction = await this.transactionRepository.count({
             where: {
                 topic_id: topic.id,
                 user_id: user_decode.id
             }
         })
-        if (!!transaction) {
-            return true
+        if (transaction > 0) {
+            return { is_access_topic: true, is_free: false }
         }
-        let count_exam = await this.examRepository.count({
+        let count_history: number = await this.examHistoryRepository.count({
             where: {
-                type: ExamType.auto,
                 user_id: user_decode.id,
-                topic_id: topic.id
+                exam: {
+                    topic_id: topic.id
+                }
             }
         })
-        if(!count_exam) {
-            return true
+        if (count_history > 0) {
+            return { is_access_topic: false, is_free: false }
         }
-        return false
+        return { is_access_topic: true, is_free: true }
     }
 
     async createTopic(data: CreateTopicDto): Promise<ResponseServiceInterface<any>> {
@@ -177,15 +181,15 @@ export class TopicService {
                 slug: Like(`%${search}%`)
             }
         }
-        if(payload?.filter?.types) {
+        if (payload?.filter?.types) {
             where.type = In(payload.filter?.types)
         }
-        if(payload?.filter?.lang_type) {
+        if (payload?.filter?.lang_type) {
             where.lang_type = payload.filter?.lang_type
         }
         if (Object.keys(where).length > 0) {
             condition.where = where
-        }   
+        }
         return condition
     }
 }

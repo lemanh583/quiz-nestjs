@@ -1,3 +1,5 @@
+// import * as xlsToJson from "xls-to-json"
+import * as ExcelJS from "exceljs"
 export class Helper {
   static removeAccents(title: string, withTime: boolean): string {
     let slug = title.toLowerCase();
@@ -57,5 +59,44 @@ export class Helper {
     return shuffledArray.slice(0, numberOfElements);
   }
 
+  static transformTextExcel(plain: any): string {
+    if(typeof plain === 'string') {
+      return plain
+    }
+    if (typeof plain === 'object' && plain.richText) {
+      return plain.richText.map((i: { text: string, font?: any }) => {
+        return i.font ? `${i.text}` : i.text;
+      }).join(' ')
+    }
+    return JSON.stringify(plain)
+  }
+
+  static async convertXlsToXlsx(inputFile: string, outputFile: string, sheetName: string) {
+    // return new Promise((resolve, reject) => {
+    //   xlsToJson({
+    //     input: inputFile,
+    //     output: outputFile,
+    //   }, (err, result) => {
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       console.log('File xls đã được chuyển đổi thành công thành xlsx:', outputFile);
+    //       resolve(result);
+    //     }
+    //   });
+    // });
+  }
+
+  static async convertXlsToXlsxExcelJS(inputFile, outputFile) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(inputFile);
+  
+    // Lưu workbook vào file xlsx
+    await workbook.xlsx.writeFile(outputFile);
+  
+    console.log('File xls đã được chuyển đổi thành công thành xlsx:', outputFile);
+  
+    return outputFile; // Trả về đường dẫn của file xlsx mới
+  } 
 
 }

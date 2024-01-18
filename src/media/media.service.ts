@@ -100,6 +100,9 @@ export class MediaService {
         if (payload?.filter?.ref_types) {
             where.ref_type = In(payload.filter.ref_types)
         }
+        if (payload?.filter?.ref_ids) {
+            where.ref_id = In(payload.filter.ref_ids)
+        }
         if (Object.keys(where).length > 0) {
             condition.where = where
         }

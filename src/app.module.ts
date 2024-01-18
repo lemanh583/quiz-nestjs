@@ -68,7 +68,11 @@ import { Tag } from './tag/tag.entity';
         Topic,
         Tag
       ],
-      synchronize: true,
+      synchronize: false,
+      migrations: ['src/migration/*{.ts,.js}'],
+      // cli: {
+      //   migrationsDir: 'src/migration'
+      // }
       // logging: true
     }),
     ServeStaticModule.forRoot({

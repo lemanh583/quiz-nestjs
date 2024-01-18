@@ -98,8 +98,8 @@ export class SlugController {
                     }
                     // Nếu là exam thì trả về thông tin của topic
                     if (topic.type == TopicType.exam) {
-                        let is_access_topic = await this.topicService.isAccessTopic(topic, user)
-                        rs = { data: { ...topic, is_access_topic }, type: "exam" }
+                        let access_topic = await this.topicService.isAccessTopic(topic, user)
+                        rs = { data: { ...topic, ...access_topic }, type: "exam" }
                     }
                     break;
                 case SlugType.post:

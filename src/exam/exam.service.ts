@@ -26,6 +26,7 @@ import { CategoryExam } from 'src/category-exam/category-exam.entity';
 import { Media } from 'src/media/media.entity';
 import { MediaType } from 'src/common/enum/media.enum';
 import { Topic } from 'src/topic/topic.entity';
+import { TopicType } from 'src/common/enum/topic.enum';
 
 @Injectable()
 export class ExamService {
@@ -193,6 +194,7 @@ export class ExamService {
                 data_insert.push({ question_id: q.question_id, exam_id: exam_DB.id })
                 return q.question
             })
+            data_insert = Helper.getRandomElements(data_insert, data_insert.length)
             await queryRunner.manager.insert(ExamQuestion, data_insert)
             await queryRunner.commitTransaction()
             return {
@@ -224,47 +226,47 @@ export class ExamService {
             if (!file.path) {
                 throw new Error("Upload failed");
             }
-            let { category_id, lang_type, exam_id } = body
-            let category = await this.categoryRepository.findOne({ where: { id: category_id } })
-            if (!category) {
-                return { error: MessageError.ERROR_NOT_FOUND + 'category', data: null }
-            }
+            let { topic_id, category_id, lang_type, type } = body
 
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(file.path);
             let promises = []
 
-            if (exam_id != undefined) {
-                let exam = await this.findOne({ where: { id: exam_id } })
-                if (!exam) {
-                    return { error: MessageError.ERROR_NOT_FOUND + 'exam', data: null }
+            // Nếu có topic_id thì là upload đề thi cho topic -> tạo mới category
+            if (topic_id) {
+                let topic = await this.topicRepository.findOne({
+                    where: {
+                        id: topic_id,
+                        type: TopicType.exam
+                    },
+                    relations: {
+                        categories: true
+                    }
+                })
+                if (!topic) {
+                    return { error: MessageError.ERROR_NOT_FOUND + 'category', data: null }
                 }
-                let worksheet = workbook.getWorksheet(1);
-                worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
-                    if (rowNumber == 1) return
-                    promises.push(this.handleInsertQuestionAndAnswer(queryRunner, exam, row, rowNumber))
-                });
-            } else {
+
+                let category_data: Partial<Category> = {
+                    title: file.originalname,
+                    slug: Helper.removeAccents(file.originalname, true),
+                    lang_type: lang_type
+                }
+                let category_db = await queryRunner.manager.save(Category, category_data)
+                topic.categories.push(category_db)
+                await queryRunner.manager.save(Topic, topic)
                 let sheets = Array.from({ length: workbook.worksheets.length }, (_: any, i: number) => workbook.getWorksheet(i + 1))
                 await Promise.all(
                     sheets.map(async (worksheet: ExcelJS.Worksheet, index: number) => {
-                        let slugText = Helper.removeAccents(worksheet.name, true)
-                        let checkSlug = await this.slugRepository.count({ where: { slug: slugText } })
-                        // let slugDB = await queryRunner.manager.save(Slug, {
-                        //     slug: checkSlug != 0 ? slugText + "d" : slugText,
-                        //     type: SlugType.exam,
-                        // })
-                        let newExam: Partial<Exam> = {
-                            title: worksheet.name,
-                            // category,
+                        let new_exam: Partial<Exam> = {
+                            title: file.originalname + ' ' + index,
                             lang_type,
-                            // slug: slugDB,
-                            type: ExamType.user,
+                            type: ExamType.import,
                             user_id: user.id
                         }
-                        let examDB = await queryRunner.manager.save(Exam, newExam)
+                        let examDB = await queryRunner.manager.save(Exam, new_exam)
                         await queryRunner.manager.save(CategoryExam, {
-                            category: category,
+                            category: category_db,
                             exam: examDB,
                             total: worksheet.rowCount
                         })
@@ -274,7 +276,19 @@ export class ExamService {
                         });
                     })
                 )
-
+            } else {
+                let worksheet = workbook.getWorksheet(1)
+                let new_exam: Partial<Exam> = {
+                    title: workbook.title,
+                    lang_type,
+                    type: ExamType.user,
+                    user_id: user.id
+                }
+                let examDB = await queryRunner.manager.save(Exam, new_exam)
+                worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
+                    if (rowNumber == 1) return
+                    promises.push(this.handleInsertQuestionAndAnswer(queryRunner, examDB, row, rowNumber))
+                });
             }
             await Promise.all(promises)
             await queryRunner.commitTransaction();
@@ -292,34 +306,35 @@ export class ExamService {
     async handleInsertQuestionAndAnswer(queryRunner: QueryRunner, exam: Exam, rows: ExcelJS.Row, rowNumber?: number): Promise<void> {
         if (rowNumber == 1) return
         let [_, questionIsr, aIsr, bIsr, cIsr, dIsr, answerIsr, recommendIsr]: any = rows.values
-        let answersObj = {
-            'a': aIsr,
-            'b': bIsr,
-            'c': cIsr,
-            'd': dIsr,
+        let answers_obj = {
+            'a': Helper.transformTextExcel(aIsr),
+            'b': Helper.transformTextExcel(bIsr),
+            'c': Helper.transformTextExcel(cIsr),
+            'd': Helper.transformTextExcel(dIsr),
         }
-        let correctAnswer = answerIsr.trim().toLowerCase()
-        let questionDb = await queryRunner.manager.save(Question, {
-            title: questionIsr,
-            recommend: recommendIsr
+        let string_answer = Helper.transformTextExcel(answerIsr).trim().toLowerCase().replaceAll("'", "")
+        let correct_answer = string_answer[string_answer.length - 1]
+        let question_DB = await queryRunner.manager.save(Question, {
+            title: Helper.transformTextExcel(questionIsr),
+            recommend: Helper.transformTextExcel(recommendIsr)
         })
-        let answersDb = await Promise.all(
-            Object.keys(answersObj).map(async (key) => {
-                return queryRunner.manager.save(Answer, {
-                    title: answersObj[key],
-                    correct: answersObj[correctAnswer] && key == correctAnswer ? true : false,
-                    question: questionDb
-                })
+        let answers_DB = []
+        for (let key of Object.keys(answers_obj)) {
+            let answer = await queryRunner.manager.save(Answer, {
+                title: answers_obj[key],
+                correct: answers_obj[correct_answer] && key == correct_answer ? true : false,
+                question: question_DB
             })
-        )
-        let checkAllTrue = answersDb.every((anw: Answer) => anw.correct)
-        let checkAllFalse = answersDb.every((anw: Answer) => !anw.correct)
-        if (checkAllTrue || checkAllFalse) {
-            throw new Error(`Can detect correct answer for question: ` + questionDb.title)
+            answers_DB.push(answer)
+        }
+        let check_all_true = answers_DB.every((anw: Answer) => anw.correct)
+        let check_all_false = answers_DB.every((anw: Answer) => !anw.correct)
+        if (check_all_true || check_all_false) {
+            throw new Error(`Can detect correct answer for question: ` + question_DB.title)
         }
         await queryRunner.manager.save(ExamQuestion, {
             exam,
-            question: questionDb
+            question: question_DB
         })
     }
 
@@ -509,7 +524,7 @@ export class ExamService {
             || (latest_history && latest_history.end_time)
             || time_condition;
 
-        condition && (build_query = build_query.orderBy('RAND()'))
+        // condition && (build_query = build_query.orderBy('RAND()'))
         let questions_random = await build_query.getMany()
 
         let count_work = await this.examHistoryRepository.count({ where: { exam_id: exam.id, user_id: user.id } })
@@ -775,15 +790,17 @@ export class ExamService {
         }
     }
 
-    async calculateCategoryFromSlug(slug: string, user_decode: PayloadTokenInterface): Promise<ResponseServiceInterface<any>> {
+    async calculateCategoryFromSlug(slug: string, user_decode: PayloadTokenInterface, access_topic: { is_access_topic: boolean, is_free: boolean }): Promise<ResponseServiceInterface<any>> {
         let topic = await this.topicRepository.findOne({
             where: { slug: { slug } },
             relations: {
                 categories: true
             }
         })
-        // console.log('topic', topic)
         let total_question = topic.lang_type == ExamLangType.en ? 30 : 60
+        if (access_topic.is_free) {
+            total_question = 30
+        }
         let categories = []
         if (topic.categories.length > total_question) {
             let new_array = Helper.getRandomElements(topic.categories, total_question)
@@ -808,12 +825,24 @@ export class ExamService {
             total_question,
             total_work: 1
         }
-        // console.log('body_gen', body_gen)
         let { error, data } = await this.autoGenerateExam(user_decode, body_gen)
         if (error) {
             return { error, data: null }
         }
         return { error: null, data }
+    }
+
+    async getExamWithConditionTotalQuestion(topic_id: number, question_count: number) : Promise<ResponseServiceInterface<any>> {
+        let exam = await this.repository.createQueryBuilder("e")
+            .leftJoinAndSelect("e.topic", "t")
+            .leftJoin("e.exam_questions", "eq")
+            .where("e.topic_id = :topic_id", { topic_id })
+            .andWhere("e.type = :type", { type: ExamType.auto })
+            .orderBy("e.id", "ASC")
+            .groupBy("e.id")
+            .having('COUNT(eq.id) <= :question_count', { question_count })
+            .getOne()
+        return { error: null, data: exam }
     }
 
 }   
