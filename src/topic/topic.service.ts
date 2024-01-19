@@ -80,17 +80,17 @@ export class TopicService {
         if (transaction > 0) {
             return { is_access_topic: true, is_free: false }
         }
-        let count_history: number = await this.examHistoryRepository.count({
-            where: {
-                user_id: user_decode.id,
-                exam: {
-                    topic_id: topic.id
-                }
-            }
-        })
-        if (count_history > 0) {
-            return { is_access_topic: false, is_free: false }
-        }
+        // let count_history: number = await this.examHistoryRepository.count({
+        //     where: {
+        //         user_id: user_decode.id,
+        //         exam: {
+        //             topic_id: topic.id
+        //         }
+        //     }
+        // })
+        // if (count_history > 0) {
+        //     return { is_access_topic: false, is_free: false }
+        // }
         return { is_access_topic: true, is_free: true }
     }
 

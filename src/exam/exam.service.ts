@@ -488,7 +488,7 @@ export class ExamService {
 
     async startExam(id: number, user: PayloadTokenInterface, query: any): Promise<ResponseServiceInterface<any>> {
         let { page = 1, limit = 60 } = query
-        let exam = await this.findOne({ where: { id }, relations: { topic: true } })
+        let exam = await this.findOne({ where: { id, type: In([ExamType.auto, ExamType.user]) }, relations: { topic: true } })
         if (!exam || exam?.hidden) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
         }
@@ -533,7 +533,7 @@ export class ExamService {
         }
 
         if (condition) {
-            console.log("create new history")
+            // console.log("create new history")
             let new_history: Partial<ExamHistory> = {
                 start_time: time_current,
                 user: user as User,
@@ -823,7 +823,7 @@ export class ExamService {
             topic_id: topic.id,
             lang_type: topic.lang_type,
             total_question,
-            total_work: 1
+            total_work: access_topic.is_free ? 1000 : 1
         }
         let { error, data } = await this.autoGenerateExam(user_decode, body_gen)
         if (error) {
