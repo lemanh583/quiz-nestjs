@@ -1,5 +1,5 @@
 import { Expose, Transform } from "class-transformer";
-import { IsString, IsNotEmpty, IsEnum, IsOptional  } from "class-validator"
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsArray, IsNumber, IsInt  } from "class-validator"
 import { ExamLangType } from "src/common/enum/exam.enum";
 import { ApiProperty } from "@nestjs/swagger";
 import { TopicType } from "src/common/enum/topic.enum";
@@ -41,4 +41,10 @@ export class CreateTopicDto {
     @IsOptional()
     @IsString()
     description?: string
+
+    @ApiProperty({ description: "category_ids", required: false })
+    @IsOptional()
+    @IsArray()
+    @IsInt({ each: true })
+    category_ids?: number[]
 }

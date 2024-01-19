@@ -14,6 +14,7 @@ import { Transaction } from 'src/transaction/transaction.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { ExamType } from 'src/common/enum/exam.enum';
 import { UserRole } from 'src/common/enum/user.enum';
+import { Category } from 'src/category/category.entity';
 
 @Injectable()
 export class TopicService {
@@ -23,6 +24,7 @@ export class TopicService {
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
         @InjectRepository(ExamHistory) private readonly examHistoryRepository: Repository<ExamHistory>,
         @InjectRepository(Slug) private readonly slugRepository: Repository<Slug>,
+        @InjectRepository(Slug) private readonly categoryRepository: Repository<Category>,
     ) { }
 
     async findOne(condition: FindOneOptions<Topic>): Promise<Topic> {
@@ -95,7 +97,7 @@ export class TopicService {
     }
 
     async createTopic(data: CreateTopicDto): Promise<ResponseServiceInterface<any>> {
-        let { title, type, lang_type } = data
+        let { title, type, lang_type, category_ids } = data
         let withTime = false
         let slug = Helper.removeAccents(data.title, withTime)
         let check = await this.slugRepository.count({ where: { slug } })
@@ -105,15 +107,21 @@ export class TopicService {
         let new_slug = await this.slugRepository.save(
             Object.assign(new Slug(), { slug, type: SlugType.topic })
         )
-        let topic = await this.save({ title, type, slug: new_slug, lang_type })
+        let data_topic: Partial<Topic> = { title, type, slug: new_slug, lang_type }
+        if(category_ids?.length > 0) {
+            let categories = await this.categoryRepository.find({ where: { id: In(category_ids) } })
+            data_topic.categories = categories
+        }
+        let topic = await this.save(data_topic)
         return {
             error: null,
             data: topic
         }
     }
 
+
     async updateTopic(id: number, data: UpdateTopicDto): Promise<ResponseServiceInterface<any>> {
-        let { title, type, lang_type, hidden, img } = data
+        let { title, type, lang_type, hidden, img, category_ids } = data
         let topic = await this.findOne({ where: { id }, relations: ["slug"] })
         if (!topic) {
             return { error: MessageError.ERROR_NOT_FOUND, data: null }
@@ -135,6 +143,10 @@ export class TopicService {
         if (lang_type) topic.lang_type = lang_type
         if (hidden != undefined) topic.hidden = hidden
         if (img) topic.img = img
+        if(category_ids?.length > 0) {
+            let categories = await this.categoryRepository.find({ where: { id: In(category_ids) } })
+            topic.categories = categories
+        }
         await this.updateOne({ id: topic.id }, topic)
         return {
             error: null,

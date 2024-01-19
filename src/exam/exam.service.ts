@@ -300,7 +300,6 @@ export class ExamService {
             fs.unlinkSync(file.path)
             await queryRunner.release()
         }
-
     }
 
     async handleInsertQuestionAndAnswer(queryRunner: QueryRunner, exam: Exam, rows: ExcelJS.Row, rowNumber?: number): Promise<void> {
@@ -320,6 +319,7 @@ export class ExamService {
         })
         let answers_DB = []
         for (let key of Object.keys(answers_obj)) {
+            if(!answers_obj[key] || !answers_obj[key]?.trim()) continue
             let answer = await queryRunner.manager.save(Answer, {
                 title: answers_obj[key],
                 correct: answers_obj[correct_answer] && key == correct_answer ? true : false,

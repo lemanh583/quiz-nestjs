@@ -61,11 +61,11 @@ export class Helper {
 
   static transformTextExcel(plain: any): string {
     if(typeof plain === 'string') {
-      return plain
+      return plain.trim()
     }
     if (typeof plain === 'object' && plain.richText) {
       return plain.richText.map((i: { text: string, font?: any }) => {
-        return i.font ? `${i.text}` : i.text;
+        return i.font ? `${i.text.trim()}` : i.text.trim();
       }).join(' ')
     }
     return JSON.stringify(plain)
