@@ -12,7 +12,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { TopicService } from 'src/topic/topic.service';
 import { MessageError } from 'src/common/enum/error.enum';
 import { ExamHistoryService } from 'src/exam-history/exam-history.service';
-import { ExamType } from 'src/common/enum/exam.enum';
+import { ExamLangType, ExamType } from 'src/common/enum/exam.enum';
 import { Helper } from 'src/common/helper';
 
 @ApiBearerAuth()
@@ -56,7 +56,7 @@ export class ExamController {
                 throw new HttpException(MessageError.ERROR_ACCESS_DENIED, HttpStatus.BAD_REQUEST)
             }
             if (access_topic.is_free) {
-                let rs = await this.examService.getExamWithConditionTotalQuestion(topic.id, 30)
+                let rs = await this.examService.getExamWithConditionTotalQuestion(topic.id, topic.lang_type == ExamLangType.en ? 15 : 30)
                 if (rs.data) {
                     return {
                         code: HttpStatus.OK,

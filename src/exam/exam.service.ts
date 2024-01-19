@@ -799,7 +799,7 @@ export class ExamService {
         })
         let total_question = topic.lang_type == ExamLangType.en ? 30 : 60
         if (access_topic.is_free) {
-            total_question = 30
+            total_question = topic.lang_type == ExamLangType.en ? 15 : 30
         }
         let categories = []
         if (topic.categories.length > total_question) {
