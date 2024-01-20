@@ -265,15 +265,15 @@ export class ExamService {
                             user_id: user.id
                         }
                         let examDB = await queryRunner.manager.save(Exam, new_exam)
-                        await queryRunner.manager.save(CategoryExam, {
-                            category: category_db,
-                            exam: examDB,
-                            total: worksheet.rowCount
-                        })
                         worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
                             if (rowNumber == 1) return
                             promises.push(this.handleInsertQuestionAndAnswer(queryRunner, examDB, row, rowNumber))
                         });
+                        await queryRunner.manager.save(CategoryExam, {
+                            category: category_db,
+                            exam: examDB,
+                            total: promises.length
+                        })
                     })
                 )
             } else {

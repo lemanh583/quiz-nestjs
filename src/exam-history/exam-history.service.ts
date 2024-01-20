@@ -208,8 +208,8 @@ export class ExamHistoryService {
                 qb.setParameter('sub_query', sub_query.getParameters());
             })
             .andWhere('eh.end_time IS NOT NULL')
-            .take(limit)
-            .skip((page - 1) * limit)
+            .limit(limit)
+            .offset((page - 1) * limit)
 
         if (sort && Object.keys(sort).length > 0 && ["exam_score", "time_diff"].includes(Object.keys(sort)[0])) {
             let key = Object.keys(sort)[0]
@@ -217,12 +217,11 @@ export class ExamHistoryService {
         } else {
             query_builder.orderBy("exam_score", "DESC")
         }
-
         let [list, total] = await Promise.all([
             query_builder.getRawMany(),
             query_builder.getCount()
         ])
-        return { error: null, data: { list, total, page, limit } }
+        return { error: null, data: { list, total, page, limit, } }
     }
 
 
