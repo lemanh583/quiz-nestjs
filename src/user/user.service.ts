@@ -123,11 +123,16 @@ export class UserService {
     }
 
     async listUser(payload: BaseListFilterDto<any, any>): Promise<ResponseServiceInterface<any>> {
-        let { limit = 10, page = 1 } = payload
+        let { limit = 20, page = 1 } = payload
         let query = this.repository
             .createQueryBuilder("u")
-            .loadRelationCountAndMap("u.total_transaction", "u.transactions")
-            .select(["u.id", "u.email", "u.name", "u.ban", "u.created_at", "u.updated_at"])
+            .leftJoinAndSelect("u.transactions", "tr")
+            .leftJoinAndSelect("tr.topic", "to")
+            .select([
+                "u.id", "u.email", "u.name", "u.ban", "u.created_at", "u.updated_at", 
+                "tr.created_at", "tr.updated_at", "tr.price", "tr.id",
+                "to.id", "to.title"
+            ])
         this.handleFilter(query, payload, page, limit)
         let [list, total] = await query.getManyAndCount()
         return {
