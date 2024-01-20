@@ -160,4 +160,16 @@ export class UserService {
         query.skip((page - 1) * limit)
         query.take(limit)
     }
+
+    async adminUpdateUserPassword(user_id: number, password: string): Promise<any> {
+        let user = await this.findOne({ where: { id: user_id }})
+        if (!user) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let hash = await argon2.hash(password)
+        user.password = hash
+        await this.repository.save(user)
+        delete user.password
+        return { error: null, data: user}
+    }
 }

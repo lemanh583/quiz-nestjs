@@ -772,6 +772,24 @@ export class AdminController {
         }
     }
 
+    @Post('/user/update-password/:user_id')
+    async updatePassword(@Param("user_id", ParseIntPipe) user_id: number, @Body() body: { password: string }): Promise<ResponseInterface<any>> {
+        try {
+            let { error, data } = await this.userService.adminUpdateUserPassword(user_id, body?.password)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.error('/admin/user/update-password', error)
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 
     /**
     * TAG SERVICE
