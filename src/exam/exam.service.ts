@@ -845,4 +845,87 @@ export class ExamService {
         return { error: null, data: exam }
     }
 
+    async startExamForFree(id: number, query: any) :Promise<ResponseServiceInterface<any>> {
+        let { page = 1, limit = 60 } = query
+        let exam = await this.findOne({ where: { id, type: In([ExamType.auto, ExamType.user]) }, relations: { topic: true } })
+        if (!exam || exam?.hidden) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let time_current = new Date()
+        if (exam.time_end && exam.time_end < time_current) {
+            return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
+        }
+        if (exam.time_start && exam.time_start > time_current) {
+            return { error: MessageError.ERROR_EXPIRES_EXAM, data: null }
+        }
+        if (exam.total_work == 1) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let build_query = this.examQuestionRepository
+            .createQueryBuilder("eq")
+            .leftJoin("eq.question", "q")
+            .addSelect(["q.id", "q.title", "q.type"])
+            .leftJoin("q.answers", "a")
+            .addSelect(["a.id", "a.title"])
+            .where("eq.exam_id = :exam_id", { exam_id: exam.id })
+        
+        let questions_random = await build_query.getMany()
+        let questions = questions_random.map((item) => item.question)
+        let end = questions.map((i) => {
+            return {
+                question_id: i.id,
+                answer_id: i.answers[2].id
+            }
+        })
+        let returnData = {
+            topic: exam.topic,
+            exam: { ...exam, total_question: questions_random.length },
+            latest_history: {},
+            list: questions.splice((page - 1) * limit, limit),
+            end 
+        }
+        return { error: null, data: returnData }
+    }
+
+    async endExamForFree(id: number, body: ExamEndDto) :Promise<ResponseServiceInterface<any>> {
+        let { form } = body
+        let exam = await this.findOne({ where: { id } })
+        if (!exam) {
+            return { error: MessageError.ERROR_NOT_FOUND, data: null }
+        }
+        let questions_exam = await this.examQuestionRepository.find({
+            where: { exam_id: exam.id },
+            relations: {
+                question: { answers: true }
+            }
+        })
+        let total_question_correct = 0
+        let question_score = exam.score / questions_exam.length
+        let history_exam: any = {}
+        let list = questions_exam.map((row) => {
+                let submit_element = form.find(q => q.question_id == row.question_id);
+                let correct_row = row.question.answers.find(a => a.id == submit_element?.answer_id)
+                let record: any = row.question
+                if (submit_element) {
+                    correct_row?.correct && total_question_correct++
+                    let correct = (correct_row != undefined) && correct_row.correct
+                    record.q_correct = correct
+                    record.answers = record.answers.map((r) => {
+                        return {
+                            ...r,
+                            user_choose: r.id == submit_element.answer_id
+                        }
+                    })
+                }
+
+                return { ...row.question }
+            })
+        history_exam.end_time = new Date()
+        history_exam.score = question_score * total_question_correct
+        history_exam.total_correct_answer = total_question_correct
+        history_exam.exam_id = exam.id
+        // history_exam.total_minute_work = '0'
+        return { error: null, data: { history_exam, list } }
+    }
+
 }   

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Post, Req, Query, Body } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, Post, Req, Query, Body, ParseIntPipe } from '@nestjs/common';
 import { SlugService } from './slug.service';
 import { MessageError } from 'src/common/enum/error.enum';
 import { SlugType } from 'src/common/enum/slug.enum';
@@ -6,13 +6,18 @@ import { CategoryService } from 'src/category/category.service';
 import { CategoryType } from 'src/common/enum/category.enum';
 import { ExamService } from 'src/exam/exam.service';
 import { CurrentUser } from 'src/auth/decorator/user.decorator';
-import { PayloadTokenInterface } from 'src/common/interface';
+import { PayloadTokenInterface, ResponseInterface } from 'src/common/interface';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { PostService } from 'src/post/post.service';
 import { TopicService } from 'src/topic/topic.service';
 import { TopicType } from 'src/common/enum/topic.enum';
 import { BaseListFilterDto } from 'src/common/base/base.list';
 import { ExamHistoryService } from 'src/exam-history/exam-history.service';
+import { Exam } from 'src/exam/exam.entity';
+import { ExamLangType } from 'src/common/enum/exam.enum';
+import { UserService } from 'src/user/user.service';
+import { UserRole } from 'src/common/enum/user.enum';
+import { ExamEndDto } from 'src/exam/dto';
 
 @Controller('')
 export class SlugController {
@@ -24,6 +29,7 @@ export class SlugController {
         private readonly postService: PostService,
         private readonly topicService: TopicService,
         private readonly examHistoryService: ExamHistoryService,
+        private readonly userService: UserService
     ) { }
 
     // @Get('/test')
@@ -121,6 +127,79 @@ export class SlugController {
             }
         } catch (error) {
             console.error(error);
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Get('/free/auto-generate/:slug')
+    async autoGenerateFromSlug(@Param("slug") slug: string): Promise<ResponseInterface<Exam>> {
+        try {
+            let topic = await this.topicService.findOne({ where: { slug: { slug } } })
+            if (!topic) {
+                throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
+            }
+            let rs = await this.examService.getExamWithConditionTotalQuestion(topic.id, topic.lang_type == ExamLangType.en ? 15 : 30)
+            if (!rs.data) {
+                let user = await this.userService.findOne({ where: { role: UserRole.ADMIN }})
+                if (!user) {
+                    throw new HttpException(MessageError.ERROR_NOT_FOUND, HttpStatus.BAD_REQUEST)
+                }
+                let { error, data } = await this.examService.calculateCategoryFromSlug(slug, user, { is_access_topic: true, is_free: true })
+                if (error) {
+                    throw new HttpException(error, HttpStatus.BAD_REQUEST)
+                }
+                return {
+                    code: HttpStatus.OK,
+                    success: true,
+                    ...data
+                }
+            }
+
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                exam: rs.data,
+                failed_category_ids: []
+            }
+        } catch (error) {
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Post('/free/:exam_id/start')
+    async startExam(@Body() body: any, @Param("exam_id", ParseIntPipe) exam_id: number): Promise<any> {
+        try {
+            let { error, data } = await this.examService.startExamForFree(exam_id, body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            if (error instanceof HttpException) throw error
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    @Post('/free/:exam_id/end')
+    async endExam(@Body() body: ExamEndDto, @Param("exam_id", ParseIntPipe) exam_id: number): Promise<any> {
+        try {
+            let { error, data } = await this.examService.endExamForFree(exam_id, body)
+            if (error) {
+                throw new HttpException(error, HttpStatus.BAD_REQUEST)
+            }
+            return {
+                code: HttpStatus.OK,
+                success: true,
+                ...data
+            }
+        } catch (error) {
+            console.log(error)
             if (error instanceof HttpException) throw error
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
         }

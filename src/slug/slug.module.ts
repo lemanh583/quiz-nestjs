@@ -10,6 +10,7 @@ import { TransactionModule } from 'src/transaction/transaction.module';
 import { PostModule } from 'src/post/post.module';
 import { TopicModule } from 'src/topic/topic.module';
 import { ExamHistoryModule } from 'src/exam-history/exam-history.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
     imports: [
@@ -19,7 +20,8 @@ import { ExamHistoryModule } from 'src/exam-history/exam-history.module';
         TransactionModule,
         PostModule,
         TopicModule,
-        ExamHistoryModule
+        ExamHistoryModule,
+        UserModule
     ],
     controllers: [SlugController],
     providers: [
