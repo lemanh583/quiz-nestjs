@@ -838,6 +838,7 @@ export class ExamService {
             .leftJoin("e.exam_questions", "eq")
             .where("e.topic_id = :topic_id", { topic_id })
             .andWhere("e.type = :type", { type: ExamType.auto })
+            .andWhere("e.total_work > :total_work", { total_work: 1 })
             .orderBy("e.id", "ASC")
             .groupBy("e.id")
             .having('COUNT(eq.id) <= :question_count', { question_count })
